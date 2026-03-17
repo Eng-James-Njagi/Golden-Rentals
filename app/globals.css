@@ -1,13 +1,16 @@
-@import "tailwindcss";
-
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F8F9FA;
+  --primary:#002EFF;
+  --darkPrimary:#DEA806;
+  --secondary:#FFBF00;
+  --accent:#0A7CFF;
 }
 
-
-body {
+html,
+body  {
+  padding: 0;
+  margin: 0;
   background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-mono);
+  box-sizing:border-box;
 }
+
