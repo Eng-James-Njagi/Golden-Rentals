@@ -1,3 +1,4 @@
+
 :root {
   --background: #F8F9FA;
   --primary:#002EFF;
@@ -6,11 +7,13 @@
   --accent:#0A7CFF;
 }
 
-html,
-body  {
-  padding: 0;
-  margin: 0;
+html{
+  padding:0;
+  margin:0;
+}
+body {
   background: var(--background);
-  box-sizing:border-box;
+  padding:2px;
+  margin:2px;
 }
 
