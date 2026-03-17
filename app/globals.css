@@ -1,7 +1,10 @@
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F8F9FA;
+  --primary:#002EFF;
+  --darkPrimary:#DEA806;
+  --secondary:#FFBF00;
+  --accent:#0A7CFF;
 }
 
 html{
@@ -13,3 +16,4 @@ body {
   padding:2px;
   margin:2px;
 }
+
