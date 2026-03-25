@@ -1,0 +1,268 @@
+
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 24px;
+  min-height: 64px;
+}
+
+.navbar.scrolled {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.logoIcon {
+  display: flex;
+  align-items: center;
+  transition: transform 0.25s ease;
+}
+
+.brand:hover .logoIcon {
+  transform: translateY(-2px);
+}
+
+.brandName {
+  font-family: var(--font-geist-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: black;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+
+.navLinks {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 6px 8px;
+  gap: 4px;
+  background: #f5f5f7;
+  border-radius: 10px;
+  border: 1px solid #e8e8ed;
+}
+
+.navLink {
+  display: inline-block;
+  padding: 6px 16px;
+  font-family:var(--font-inter);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #3a3a4a;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  background: #ffffff;
+  color: #1a1a2e;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.navLinkActive {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.navLinkActive:hover {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+/* ── Actions (Button + Hamburger) ────────── */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ── CTA Button ──────────────────────────── */
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: var(--primary);
+  color: #ffffff;
+  font-family: var(--font-geist-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  border-radius: 2px;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  
+}
+
+.ctaButton:hover {
+  background: var(--secondary);
+  transform: translateY(-1px);
+  color:black;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+}
+
+.ctaButton:active {
+  transform: translateY(0);
+}
+
+.arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.ctaButton:hover .arrow {
+  transform: translateX(3px);
+}
+
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: 1.5px solid #e0e0e8;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.hamburger:hover {
+  border-color: var(--primary);
+  background: var(--darkSecondary);
+}
+
+.hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--background);
+  border-radius: 2px;
+  transform-origin: center;
+  transition: transform 0.3s ease, opacity 0.3s ease, width 0.2s ease;
+}
+
+/* Animate to X when open */
+.hamburgerOpen span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburgerOpen span:nth-child(2) {
+  opacity: 0;
+  width: 0;
+}
+.hamburgerOpen span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+
+@media (max-width: 780px) {
+  .navLinks {
+    display: none;
+    order: 10; 
+    width: 100%;
+    border-radius: 12px;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 16px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    gap: 4px;
+    animation: slideDown 0.25s ease forwards;
+  }
+
+  .navLinks.navOpen {
+    display: flex;
+  }
+
+  .navLink {
+    width: 100%;
+    text-align: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 8px 16px;
+    align-items: center;
+  }
+
+
+  .brand {
+    order: 1;
+    flex: 1;
+  }
+
+  .actions {
+    order: 2;
+    flex-shrink: 0;
+
+    display: contents;
+  }
+
+
+
+  .hamburger {
+    order: 2;
+    flex-shrink: 0;
+  }
+
+ 
+  .ctaButton {
+    order: 3;
+    flex: 0 0 90%;
+    justify-content: center;
+    margin-top: 6px;
+    border-radius: 8px;
+  }
+
+  /* Row 3: nav links always last */
+  .navLinks {
+    order: 10;
+    margin-top: 4px;
+  }
+}
+
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
