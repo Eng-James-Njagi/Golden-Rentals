@@ -1,0 +1,47 @@
+.page {
+   min-height: 100vh;
+   padding: 0 0 60px;
+   margin-top: 30px;
+   background-color:var(--background);
+}
+
+.container {
+   width: 80%;
+   padding: 60px;
+}
+
+.backLink {
+   display: inline-flex;
+   align-items: center;
+   gap: 6px;
+   font-size: 13px;
+   font-weight: 500;
+   font-family: var(--font-inter);
+   color: var(--primary);
+   text-decoration: none;
+   margin-bottom: 20px;
+   transition: color 0.15s ease;
+}
+
+.backLink:hover {
+   color: var(--secondary);
+   transition: all 0.4s ease;
+}
+
+@media (max-width: 780px) {
+   .container {
+      padding: 16px 14px 0;
+      margin-top: 80px;
+   }
+}
+
+@media(max-width:480px) {
+   .page {
+      margin-top: 100px;
+   }
+
+   .container {
+      margin: 0 auto;
+      width: 90%;
+   }
+}
