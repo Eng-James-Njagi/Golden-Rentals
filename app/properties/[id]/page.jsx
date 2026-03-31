@@ -3,6 +3,7 @@ import Link from 'next/link';
 import PropertyHero from '../../components/detailsHero';
 import PropertyTabs from '../../components/detailsTab';
 import styles from '../../components/css/detailsPage.module.css';
+import RelatedListingsCarousel from '../../components/RelatedListingsCarousel'
 
 async function getListing(id) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
@@ -52,6 +53,11 @@ export default async function PropertyDetailPage({ params }) {
 
         {/* Tabs: description + map */}
         <PropertyTabs listing={listing} />
+
+        <RelatedListingsCarousel
+          categoryName={listing.category_name}
+          currentId={listing.listing_id}
+        />
       </div>
     </div>
   );
