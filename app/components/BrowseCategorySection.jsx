@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./css/BrowseCategorySection.css";
 import Image from 'next/image'
 
@@ -36,25 +36,45 @@ const categories = [
   },
 ];
 
-const VISIBLE = 4;
+const CARD_WIDTH = 240;
+const CARD_GAP = 20;
+
 
 export default function BrowseByCategorySection() {
-  const [ index, setIndex ] = useState(0);
   const trackRef = useRef(null);
+  const [ canPrev, setCanPrev ] = useState(false);
+  const [ canNext, setCanNext ] = useState(true);
+  const [ progress, setProgress ] = useState(); 
 
-  const canPrev = index > 0;
-  const canNext = index + VISIBLE < categories.length;
-
-  const prev = () => { if (canPrev) setIndex((i) => i - 1); };
-  const next = () => { if (canNext) setIndex((i) => i + 1); };
-
-  const progress = ((index + VISIBLE) / categories.length) * 100;
-
-  const handleCategoryClick = (categoryId) => {
-    // Placeholder — wire up routing here later
-    // e.g. router.push(`/properties?category=${categoryId}`)
-    console.log("Navigate to properties with filter:", categoryId);
+  const updateButtons = () => {
+    if (!trackRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = trackRef.current;
+    setCanPrev(scrollLeft > 0);
+    setCanNext(scrollLeft + clientWidth < scrollWidth - 1); // -1 for rounding errors
+    setProgress((scrollLeft / (scrollWidth - clientWidth)) * 100); // <-- update progress
   };
+
+  useEffect(() => {
+    updateButtons();
+    const node = trackRef.current;
+    if (!node) return;
+    node.addEventListener('scroll', updateButtons);
+    window.addEventListener('resize', updateButtons);
+    return () => {
+      node.removeEventListener('scroll', updateButtons);
+      window.removeEventListener('resize', updateButtons);
+    };
+  }, []);
+
+  const scrollPrev = () => {
+    trackRef.current.scrollBy({ left: -(CARD_WIDTH + CARD_GAP)});
+  };
+  const scrollNext = () => {
+    trackRef.current.scrollBy({ left: CARD_WIDTH + CARD_GAP});
+  };
+
+  const handleCategoryClick = (id) => console.log("Navigate:", id);
+
 
   return (
     <section className="bbc-section">
@@ -77,7 +97,7 @@ export default function BrowseByCategorySection() {
           <div className="bbc-arrows">
             <button
               className={`bbc-arrow ${!canPrev ? "bbc-arrow--disabled" : ""}`}
-              onClick={prev}
+              onClick={scrollPrev}   // <-- was "prev"
               aria-label="Previous"
               disabled={!canPrev}
             >
@@ -85,7 +105,7 @@ export default function BrowseByCategorySection() {
             </button>
             <button
               className={`bbc-arrow bbc-arrow--active ${!canNext ? "bbc-arrow--disabled" : ""}`}
-              onClick={next}
+              onClick={scrollNext}   // <-- was "next"
               aria-label="Next"
               disabled={!canNext}
             >
@@ -96,11 +116,8 @@ export default function BrowseByCategorySection() {
       </div>
 
       {/* Carousel */}
-      <div className="bbc-carousel-outer">
-        <div
-          className="bbc-carousel-track"
-          ref={trackRef}
-        >
+      <div className="bbc-carousel-outer"  ref={trackRef}>
+        <div className="bbc-carousel-track">
           {categories.map((cat) => (
             <div
               key={cat.id}
