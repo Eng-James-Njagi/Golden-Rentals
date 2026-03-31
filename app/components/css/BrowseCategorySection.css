@@ -67,6 +67,7 @@
   height: 100%;
   background: var(--darkSecondary, #DEA806);
   border-radius: 2px;
+  min-width:8%;
   transition: width 0.35s ease;
 }
 
@@ -122,11 +123,13 @@
 .bbc-carousel-outer::-webkit-scrollbar {
   display: none;
 }
+
 .bbc-carousel-outer {
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  width: 100%;
 }
 
 .bbc-carousel-track {
