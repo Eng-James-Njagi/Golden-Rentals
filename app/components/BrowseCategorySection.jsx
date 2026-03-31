@@ -100,7 +100,6 @@ export default function BrowseByCategorySection() {
         <div
           className="bbc-carousel-track"
           ref={trackRef}
-          style={{ transform: `translateX(calc(-${index} * (var(--card-width) + var(--card-gap))))` }}
         >
           {categories.map((cat) => (
             <div

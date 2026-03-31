@@ -119,9 +119,14 @@
 }
 
 /* --- Carousel --- */
+.bbc-carousel-outer::-webkit-scrollbar {
+  display: none;
+}
 .bbc-carousel-outer {
-  overflow: hidden;
-  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 .bbc-carousel-track {
