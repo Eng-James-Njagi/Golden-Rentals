@@ -56,8 +56,10 @@ export default function ContactSection() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+   const isValidEmail = (email) =>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
   const handleSend = () => {
-    if (!form.email || !form.body) return;
+    if (!form.email || !form.body|| !isValidEmail(form.email)) return;
     setStatus("sending");
     setTimeout(() => {
       setStatus("sent");

@@ -203,12 +203,6 @@
 }
 
 /* --- Responsive --- */
-@media (max-width: 900px) {
-  :root {
-    --card-width: 200px;
-  }
-}
-
 @media (max-width: 640px) {
   :root {
     --card-width: 160px;

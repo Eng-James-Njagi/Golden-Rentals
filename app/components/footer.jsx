@@ -106,7 +106,7 @@ export default function Footer() {
             <span className="footer-heading-underline">Links</span>
           </h4>
           <ul className="footer-link-list">
-            <li><Link href="#" className="footer-link">Home</Link></li>
+            <li><Link href="/" className="footer-link">Home</Link></li>
             <li><Link  href="/properties" className="footer-link">Properties</Link></li>
             <li><Link href="/about" className="footer-link">About</Link></li>
           </ul>

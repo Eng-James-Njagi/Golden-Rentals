@@ -39,7 +39,7 @@ const categories = [
 const VISIBLE = 4;
 
 export default function BrowseByCategorySection() {
-  const [index, setIndex] = useState(0);
+  const [ index, setIndex ] = useState(0);
   const trackRef = useRef(null);
 
   const canPrev = index > 0;
@@ -109,7 +109,13 @@ export default function BrowseByCategorySection() {
               onClick={() => handleCategoryClick(cat.id)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && handleCategoryClick(cat.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === "Spacebar" || e.code === "Space") {
+                  e.preventDefault();
+                  handleCategoryClick(cat.id);
+                }
+              }}
+
             >
               <div className="bbc-card-img-wrap">
                 <Image

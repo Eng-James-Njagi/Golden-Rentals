@@ -84,7 +84,9 @@ export default function HomeSeekerSection() {
             <h3 className="po-card-title">Connect</h3>
           </div>
           <p className="po-card-body">
-            Found something you love? Check what real tenants and buyers have to say. Every lister on our platform is authenticated — no reviews yet means no risk, because we only host listers who deliver.
+            Ready to take the next step? Reach out directly 
+            to property listers hrough our secure messaging system — no middlemen, no delays, 
+            ust a direct line to your future home.
           </p>
         </div>
       </div>

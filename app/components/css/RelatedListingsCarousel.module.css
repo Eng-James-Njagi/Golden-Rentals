@@ -1,59 +1,43 @@
 .section {
-  width: 100%;
+  width: 94%;
   padding: 2rem 0;
+  margin:0 auto;
 }
 
 .heading {
-  font-size: 1.25rem;
+  font-size: 12px;
   font-weight: 600;
   margin-bottom: 1.25rem;
+  font-family: var(--font-inter);
+  color: var(--secondary);
 }
 
 .carouselWrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.navBtn {
-  flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 50%;
-  border: 1px solid #d1d5db;
-  background: #fff;
-  cursor: pointer;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.navBtn:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.navBtn:not(:disabled):hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
+  width: 100%;
 }
 
 .viewport {
-  flex: 1;
-  overflow: hidden;
+  width: 100%;
 }
 
 .track {
   display: flex;
-  transition: transform 0.3s ease;
-  will-change: transform;
+  gap: 0.75rem;
 }
 
 .cardSlot {
   flex: 0 0 calc(100% / 3);
   min-width: 0;
-  padding: 0 0.5rem;
   box-sizing: border-box;
+}
+
+@media (max-width: 780px) {
+  .track {
+    flex-direction: column;
+  }
+
+  .cardSlot {
+    flex: 0 0 auto;
+    width: 100%;
+  }
 }
