@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export const revalidate = 0;
@@ -11,11 +11,11 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: 'Invalid listing ID' }, { status: 400 });
   }
 
-  const supabase = createServerClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data, error } = await supabase.rpc('get_listings_paginated', {
-    p_limit:      1,
-    p_offset:     0,
+    p_limit: 1,
+    p_offset: 0,
     p_listing_id: listing_id,
   });
 
@@ -30,5 +30,5 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
   }
 
-  return NextResponse.json({ data: data[0] });
+  return NextResponse.json({ data: data[ 0 ] });
 }

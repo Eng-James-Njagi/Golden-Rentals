@@ -1,6 +1,10 @@
 'use client'
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import "../AuthForm.css";
+import { createBrowserSupabaseClient } from '../../lib/supabase/client';
+
+const supabase = createBrowserSupabaseClient();
 
 /* ── SVG icon helper ── */
 const Icon = ({ d }) => (
@@ -28,32 +32,38 @@ const icons = {
   logo:     "M4 6h16M4 12h10M4 18h7",
 };
 
-/* ── Single field ── */
-const Field = ({ icon, placeholder, type = "text", hint, fullWidth = false }) => (
+/* ── Single field — controlled ── */
+const Field = ({ icon, placeholder, type = "text", hint, fullWidth = false, value, onChange, name }) => (
   <div className={`field-wrap${fullWidth ? " field-full" : ""}`}>
     <div className="input-row">
       <Icon d={icons[icon]} />
-      <input type={type} placeholder={placeholder} autoComplete="off" />
+      <input
+        type={type}
+        placeholder={placeholder}
+        autoComplete="off"
+        name={name}
+        value={value}
+        onChange={onChange}
+      />
     </div>
     {hint && <span className="field-hint">{hint}</span>}
   </div>
 );
 
 /* ── Sign Up: 2-column grid ── */
-const SignUpFields = () => (
+const SignUpFields = ({ values, onChange }) => (
   <div className="fields-grid">
-    <Field icon="user"     placeholder="Username" />
-    <Field icon="lock"     placeholder="Password"         type="password" />
-    <Field icon="mail"     placeholder="Email" />
-    <Field icon="building" placeholder="Organisation Name" />
-    <Field icon="phone"    placeholder="Contact" />
-    {/*
-      Ward spans both columns (fullWidth) so its hint text
-      has room to breathe and doesn't get clipped in the grid.
-    */}
+    <Field icon="user"     name="username"         placeholder="Username"          value={values.username}         onChange={onChange} />
+    <Field icon="lock"     name="password"         placeholder="Password"          value={values.password}         onChange={onChange} type="password" />
+    <Field icon="mail"     name="email"            placeholder="Email"             value={values.email}            onChange={onChange} />
+    <Field icon="building" name="organisationName" placeholder="Organisation Name" value={values.organisationName} onChange={onChange} />
+    <Field icon="phone"    name="contact"          placeholder="Contact"           value={values.contact}          onChange={onChange} />
     <Field
       icon="map"
+      name="ward"
       placeholder="Ward (optional)"
+      value={values.ward}
+      onChange={onChange}
       hint="Providing your ward helps our algorithms match you faster to relevant search results."
       fullWidth
     />
@@ -61,18 +71,94 @@ const SignUpFields = () => (
 );
 
 /* ── Log In: single column ── */
-const LogInFields = () => (
+const LogInFields = ({ values, onChange }) => (
   <div className="fields-single">
-    <Field icon="user" placeholder="Username" />
-    <Field icon="lock" placeholder="Password" type="password" />
+    <Field icon="user" name="username" placeholder="Username" value={values.username} onChange={onChange} />
+    <Field icon="lock" name="password" placeholder="Password" value={values.password} onChange={onChange} type="password" />
   </div>
 );
+
+/* ── Field state shapes ── */
+const SIGNUP_INIT = { username: "", password: "", email: "", organisationName: "", contact: "", ward: "" };
+const LOGIN_INIT  = { username: "", password: "" };
 
 /* ── Root component ── */
 export default function AuthForm() {
   const [mode, setMode] = useState("signup"); // "signup" | "login"
-  const toggleMode = useCallback(() => setMode(m => m === "signup" ? "login" : "signup"), []);
+  const router = useRouter();
   const isSignup = mode === "signup";
+
+  const [signupFields, setSignupFields] = useState(SIGNUP_INIT);
+  const [loginFields,  setLoginFields]  = useState(LOGIN_INIT);
+
+  const [error,   setError]   = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const toggleMode = useCallback(() => {
+    setMode(m => m === "signup" ? "login" : "signup");
+    setError(null);
+  }, []);
+
+  const handleSignupChange = useCallback(e => {
+    const { name, value } = e.target;
+    setSignupFields(prev => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleLoginChange = useCallback(e => {
+    const { name, value } = e.target;
+    setLoginFields(prev => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleSubmit = async () => {
+    setError(null);
+    setLoading(true);
+
+    const endpoint = "/api/auth";
+    const body = isSignup
+      ? { mode: "signup", ...signupFields }
+      : { mode: "login",  ...loginFields  };
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong.");
+        return;
+      }
+
+      if (isSignup) {
+        setSignupFields(SIGNUP_INIT);
+        setMode("login");
+        setError(null);
+      } else {
+        // API returned the email linked to the username.
+        // Now sign in via Supabase browser client so the session is created
+        // and onAuthStateChange fires across the app (e.g. navbar).
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: loginFields.password,
+        });
+
+        if (signInError) {
+          setError("Invalid username or password.");
+          return;
+        }
+
+        router.push("/Admin/Lister/Land");
+      }
+
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-scene">
@@ -80,7 +166,6 @@ export default function AuthForm() {
 
         {/* LEFT BRAND PANEL */}
         <div className="panel-brand">
-
           <span className="pdiamond pd1" />
           <span className="pdiamond pd2" />
           <span className="pdiamond pd3" />
@@ -106,12 +191,16 @@ export default function AuthForm() {
             {isSignup ? "Create Account" : "Log In"}
           </h1>
 
-          {isSignup ? <SignUpFields /> : <LogInFields />}
+          {isSignup
+            ? <SignUpFields values={signupFields} onChange={handleSignupChange} />
+            : <LogInFields  values={loginFields}  onChange={handleLoginChange}  />
+          }
 
-          {/* Centered submit */}
+          {error && <p className="form-error">{error}</p>}
+
           <div className="submit-wrap">
-            <button className="submit-btn">
-              {isSignup ? "Sign Up" : "Log In"}
+            <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
+              {loading ? "Please wait…" : isSignup ? "Sign Up" : "Log In"}
             </button>
           </div>
         </div>

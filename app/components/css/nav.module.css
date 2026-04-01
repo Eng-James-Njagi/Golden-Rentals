@@ -105,6 +105,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  border:none;
   padding: 10px 20px;
   background: var(--primary);
   color: #ffffff;

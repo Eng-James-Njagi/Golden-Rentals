@@ -1,10 +1,10 @@
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export const revalidate = 3600;
 
 export async function GET() {
-  const supabase = createServerClient();
+  const supabase = await createServerSupabaseClient();
 
   const [wardsResult, categoriesResult, typesResult] = await Promise.all([
     supabase
