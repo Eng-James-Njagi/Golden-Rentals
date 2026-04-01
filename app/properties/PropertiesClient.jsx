@@ -54,6 +54,7 @@ export default function PropertiesClient() {
       const json = await res.json()
       setListings(json.data ?? [])
       setPagination(json.pagination)
+      console.log('first listing media:', json.data?.[0]?.media)
     } catch (err) {
       setError(err.message)
     } finally {
