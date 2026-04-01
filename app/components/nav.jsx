@@ -51,10 +51,10 @@ export default function Navbar() {
          </ul>
 
          <div className={styles.actions}>
-            <a href="#" className={styles.ctaButton}>
+            <Link href="/Auth" className={styles.ctaButton}>
                BECOME A LISTER
                <span className={styles.arrow}>→</span>
-            </a>
+            </Link>
 
             <button
                className={`${styles.hamburger} ${menuOpen ? styles.hamburgerOpen : ''}`}
