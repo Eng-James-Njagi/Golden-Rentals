@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import styles from './css/FilterSidebar.module.css';
+import styles from '../css/Properties/FilterSidebar.module.css';
 
 const PRICE_RANGES = [
    { label: '2,000 and below', value: 'below_2000' },

@@ -1,6 +1,6 @@
 'use client';
 
-import styles from '../components/css/AboutHeroSection.module.css';
+import styles from '../css/About/AboutHeroSection.module.css';
 
 export default function AboutHeroSection() {
   return (

@@ -1,22 +1,22 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import PropertyCard from './PropertyCard'
-import styles from './css/RelatedListingsCarousel.module.css'
+import PropertyCard from '../Properties/PropertyCard'
+import styles from '../css/Details/detailsTab.module.css';
 
 const PER_SCROLL = 3
 
 export default function RelatedListingsCarousel({ categoryName, currentId }) {
-  const [listings, setListings] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [offset, setOffset]     = useState(0)
-  const trackRef                = useRef(null)
+  const [ listings, setListings ] = useState([])
+  const [ loading, setLoading ] = useState(true)
+  const [ offset, setOffset ] = useState(0)
+  const trackRef = useRef(null)
 
   useEffect(() => {
     if (!categoryName) return
     async function fetchRelated() {
       try {
-        const res  = await fetch('/api/listings?page=1')
+        const res = await fetch('/api/listings?page=1')
         if (!res.ok) return
         const json = await res.json()
         const filtered = (json.data ?? [])
@@ -29,7 +29,7 @@ export default function RelatedListingsCarousel({ categoryName, currentId }) {
       }
     }
     fetchRelated()
-  }, [categoryName, currentId])
+  }, [ categoryName, currentId ])
 
   useEffect(() => {
     if (!trackRef.current) return
@@ -38,7 +38,7 @@ export default function RelatedListingsCarousel({ categoryName, currentId }) {
     trackRef.current.style.transform = isMobile
       ? `translateY(-${offset * cardPct}%)`
       : `translateX(-${offset * cardPct}%)`
-  }, [offset])
+  }, [ offset ])
 
   if (loading || listings.length === 0) return null
 
@@ -50,7 +50,7 @@ export default function RelatedListingsCarousel({ categoryName, currentId }) {
           <div className={styles.track} ref={trackRef}>
             {listings.map(item => (
               <div key={item.listing_id} className={styles.cardSlot}>
-                <PropertyCard listing={item} onWardClick={() => {}} />
+                <PropertyCard listing={item} onWardClick={() => { }} />
               </div>
             ))}
           </div>

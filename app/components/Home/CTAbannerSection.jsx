@@ -1,5 +1,5 @@
 import React from "react";
-import "./css/CTABannerSection.css";
+import "../css/Home/CTABannerSection.css";
 
 const InstagramIcon = () => (
   <svg className="cta-social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

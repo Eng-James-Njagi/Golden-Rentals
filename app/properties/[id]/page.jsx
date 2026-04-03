@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import PropertyHero from '../../components/detailsHero';
-import PropertyTabs from '../../components/detailsTab';
-import styles from '../../components/css/detailsPage.module.css';
-import RelatedListingsCarousel from '../../components/RelatedListingsCarousel'
+import PropertyHero from '../../components/Details/detailsHero';
+import PropertyTabs from '../../components/Details/detailsTab';
+import styles from '../../components/css/Details/detailsPage.module.css';
+import RelatedListingsCarousel from '../../components/Details/RelatedListingsCarousel'
 
 async function getListing(id) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';

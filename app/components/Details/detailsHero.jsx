@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import styles from '../components/css/detailsHero.module.css';
+import styles from '../css/Details/detailsHero.module.css';
 
 function PlayIcon() {
   return (

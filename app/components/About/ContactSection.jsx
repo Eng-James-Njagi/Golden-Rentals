@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useRef, useEffect } from "react";
-import "./css/ContactSection.css";
+import "../css/About/ContactSection.css";
 
 const categories = [
   {
