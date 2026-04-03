@@ -1,6 +1,6 @@
 'use client';
 
-import styles from '../components/css/AboutComp.module.css';
+import styles from '../css/About/AboutComp.module.css';
 
 export default function AboutComp() {
   return (

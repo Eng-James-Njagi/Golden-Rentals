@@ -137,9 +137,6 @@ export default function AuthForm() {
         setMode("login");
         setError(null);
       } else {
-        // API returned the email linked to the username.
-        // Now sign in via Supabase browser client so the session is created
-        // and onAuthStateChange fires across the app (e.g. navbar).
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: data.email,
           password: loginFields.password,
@@ -150,7 +147,7 @@ export default function AuthForm() {
           return;
         }
 
-        router.push("/Admin/Lister/Land");
+        router.push("/Admin/Lister");
       }
 
     } catch (err) {

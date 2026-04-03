@@ -2,46 +2,46 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import FilterSidebar from '../components/FilterSidebar'
-import PropertyCard from '../components/PropertyCard'
-import styles from '../components/css/properties.module.css'
+import FilterSidebar from '../components/Properties/FilterSidebar'
+import PropertyCard from '../components/Properties/PropertyCard'
+import styles from '../components/css/Properties/properties.module.css'
 
 const PAGE_SIZE = 20
 
 function filtersFromParams(params) {
   return {
-    ward_id:           params.get('ward_id')           ? Number(params.get('ward_id'))                          : null,
-    category_id:       params.get('category_id')       ? Number(params.get('category_id'))                      : null,
-    type_ids:          params.get('type_ids')           ? params.get('type_ids').split(',').map(Number)          : [],
-    price_range:       params.get('price_range')        || null,
-    rent_duration:     params.get('rent_duration')      || null,
-    property_interior: params.get('property_interior')  || null,
+    ward_id: params.get('ward_id') ? Number(params.get('ward_id')) : null,
+    category_id: params.get('category_id') ? Number(params.get('category_id')) : null,
+    type_ids: params.get('type_ids') ? params.get('type_ids').split(',').map(Number) : [],
+    price_range: params.get('price_range') || null,
+    rent_duration: params.get('rent_duration') || null,
+    property_interior: params.get('property_interior') || null,
   }
 }
 
 function filtersToParams(filters, page) {
   const params = new URLSearchParams()
-  if (filters.ward_id)            params.set('ward_id',           filters.ward_id)
-  if (filters.category_id)        params.set('category_id',       filters.category_id)
-  if (filters.type_ids?.length)   params.set('type_ids',          filters.type_ids.join(','))
-  if (filters.price_range)        params.set('price_range',       filters.price_range)
-  if (filters.rent_duration)      params.set('rent_duration',     filters.rent_duration)
-  if (filters.property_interior)  params.set('property_interior', filters.property_interior)
-  if (page > 1)                   params.set('page',              page)
+  if (filters.ward_id) params.set('ward_id', filters.ward_id)
+  if (filters.category_id) params.set('category_id', filters.category_id)
+  if (filters.type_ids?.length) params.set('type_ids', filters.type_ids.join(','))
+  if (filters.price_range) params.set('price_range', filters.price_range)
+  if (filters.rent_duration) params.set('rent_duration', filters.rent_duration)
+  if (filters.property_interior) params.set('property_interior', filters.property_interior)
+  if (page > 1) params.set('page', page)
   return params
 }
 
 export default function PropertiesClient() {
-  const router       = useRouter()
+  const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [filters, setFilters]         = useState(() => filtersFromParams(searchParams))
-  const [currentPage, setCurrentPage] = useState(() => Number(searchParams.get('page') ?? 1))
-  const [listings, setListings]       = useState([])
-  const [pagination, setPagination]   = useState(null)
-  const [loading, setLoading]         = useState(true)
-  const [error, setError]             = useState(null)
-  const [wardPopup, setWardPopup]     = useState(null)
+  const [ filters, setFilters ] = useState(() => filtersFromParams(searchParams))
+  const [ currentPage, setCurrentPage ] = useState(() => Number(searchParams.get('page') ?? 1))
+  const [ listings, setListings ] = useState([])
+  const [ pagination, setPagination ] = useState(null)
+  const [ loading, setLoading ] = useState(true)
+  const [ error, setError ] = useState(null)
+  const [ wardPopup, setWardPopup ] = useState(null)
 
   const fetchListings = useCallback(async (page, activeFilters) => {
     setLoading(true)
@@ -54,7 +54,6 @@ export default function PropertiesClient() {
       const json = await res.json()
       setListings(json.data ?? [])
       setPagination(json.pagination)
-      console.log('first listing media:', json.data?.[0]?.media)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -65,14 +64,14 @@ export default function PropertiesClient() {
   // fetch on page or filter change
   useEffect(() => {
     fetchListings(currentPage, filters)
-  }, [currentPage, filters, fetchListings])
+  }, [ currentPage, filters, fetchListings ])
 
   // sync URL
   useEffect(() => {
     const params = filtersToParams(filters, currentPage)
     const qs = params.toString()
     router.replace(qs ? `?${qs}` : '?', { scroll: false })
-  }, [filters, currentPage, router])
+  }, [ filters, currentPage, router ])
 
   const handleFilterChange = (updated) => {
     setFilters(updated)
@@ -95,7 +94,7 @@ export default function PropertiesClient() {
     pages.push(1)
     if (currentPage > 3) pages.push('...')
     const start = Math.max(2, currentPage - 1)
-    const end   = Math.min(totalPages - 1, currentPage + 1)
+    const end = Math.min(totalPages - 1, currentPage + 1)
     for (let i = start; i <= end; i++) pages.push(i)
     if (currentPage < totalPages - 2) pages.push('...')
     pages.push(totalPages)
@@ -132,8 +131,8 @@ export default function PropertiesClient() {
         {!loading && !error && listings.length === 0 && (
           <div className={styles.emptyState}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-              <path d="M3 10V20M21 10V20M3 10h18M3 10L12 3l9 7" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-              <rect x="9" y="14" width="6" height="6" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M3 10V20M21 10V20M3 10h18M3 10L12 3l9 7" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+              <rect x="9" y="14" width="6" height="6" stroke="currentColor" strokeWidth="1.2" />
             </svg>
             <p>No properties match your filters.</p>
           </div>

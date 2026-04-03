@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import styles from './css/nav.module.css';
+import styles from './css/Navigation/nav.module.css';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createBrowserSupabaseClient } from '../../lib/supabase/client';
@@ -9,11 +9,11 @@ import { createBrowserSupabaseClient } from '../../lib/supabase/client';
 const supabase = createBrowserSupabaseClient();
 
 export default function Navbar() {
-  const [menuOpen,  setMenuOpen]  = useState(false);
-  const [scrolled,  setScrolled]  = useState(false);
-  const [session,   setSession]   = useState(null);
+  const [ menuOpen, setMenuOpen ] = useState(false);
+  const [ scrolled, setScrolled ] = useState(false);
+  const [ session, setSession ] = useState(null);
   const pathname = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
 
   /* ── Scroll listener ── */
   useEffect(() => {
@@ -49,9 +49,10 @@ export default function Navbar() {
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
   const navLinks = [
-    { label: 'Home',       path: '/' },
+    { label: 'Home', path: '/' },
     { label: 'Properties', path: '/properties' },
-    { label: 'About',      path: '/about' },
+    ...(session ? [ { label: 'Dashboard', path: '/Admin/Lister' } ] : []),
+    { label: 'About', path: '/about' },
   ];
 
   return (
@@ -81,6 +82,13 @@ export default function Navbar() {
       </ul>
 
       <div className={styles.actions}>
+        {!session && (
+          <Link href="/Auth" className={styles.ctaButton}>
+            LOG IN
+            <span className={styles.arrow}>→</span>
+          </Link>
+        )}
+
         {session ? (
           <button className={styles.ctaButton} onClick={handleSignOut}>
             SIGN OUT

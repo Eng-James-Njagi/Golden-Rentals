@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import PropertiesClient from './PropertiesClient'
-import styles from '../components/css/properties.module.css'
+import styles from '../components/css/Properties/properties.module.css'
 
 function LoadingSkeleton() {
   return (

@@ -5,6 +5,7 @@ export const revalidate = 3600;
 
 export async function GET() {
   const supabase = await createServerSupabaseClient();
+   console.log('[filters] route hit');
 
   const [wardsResult, categoriesResult, typesResult] = await Promise.all([
     supabase
@@ -21,7 +22,9 @@ export async function GET() {
       .from('property_types')
       .select('type_id, type_name, category_id')
       .order('type_name', { ascending: true }),
+      
   ]);
+ 
 
   if (wardsResult.error || categoriesResult.error || typesResult.error) {
     return NextResponse.json(

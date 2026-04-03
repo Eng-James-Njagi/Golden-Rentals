@@ -1,7 +1,7 @@
-import AboutHeroSection from '../components/AboutHeroSection';
-import AboutComp from '../components/AboutComp'
-import PropertyOwner from '../components/PropertySection'
-import ContactSection from '../components/ContactSection'
+import AboutHeroSection from '../components/About/AboutHeroSection';
+import AboutComp from '../components/About/AboutComp'
+import PropertyOwner from '../components/About/PropertySection'
+import ContactSection from '../components/About/ContactSection'
 export default function About(){
    return(
       <>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import styles from './css/propertyCard.module.css';
+import styles from '../css/Properties/propertyCard.module.css';
 
 export default function PropertyCard({ listing, onWardClick }) {
   const {

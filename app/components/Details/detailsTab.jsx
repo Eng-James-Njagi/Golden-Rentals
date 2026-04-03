@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import styles from '../components/css/detailsTab.module.css';
+import styles from '../css/Details/detailsTab.module.css';
 
 const TABS = ['Description', 'Property Location', 'Reviews'];
 

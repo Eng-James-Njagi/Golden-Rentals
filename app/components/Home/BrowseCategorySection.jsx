@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useRef, useEffect } from "react";
-import "./css/BrowseCategorySection.css";
+import "../css/Home/BrowseCategorySection.css";
 import Image from 'next/image'
 
 const categories = [
