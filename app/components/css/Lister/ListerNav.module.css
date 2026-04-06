@@ -10,6 +10,7 @@
    user-select: none;
    position: relative;
    padding: 6px;
+   height:auto;
 }
 
 .bar {
@@ -132,21 +133,8 @@
    margin-top: 4px;
 }
 
-.viewport {
-   overflow: hidden;
-   width: 100%;
-   margin-top: 16px;
-}
-
-.track {
-   display: flex;
-   transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-   will-change: transform;
-}
-
-.panel {
-   min-width: 100%;
-   flex-shrink: 0;
+.panelWrap {
+  margin-top: 16px;
 }
 
 .defaultPanel {
