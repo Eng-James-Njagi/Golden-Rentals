@@ -24,8 +24,7 @@ export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
   const barRef  = useRef(null);
   const rootRef = useRef(null);
 
-  const activeIndex = TABS.findIndex(t => t.id === active);
-  const activeTab   = TABS[activeIndex];
+  const activeTab = TABS.find(t => t.id === active);
 
   useEffect(() => {
     const updateIndicator = () => {
@@ -40,7 +39,6 @@ export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
         width: tabRect.width - padding,
       });
     };
-
     updateIndicator();
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
@@ -72,7 +70,7 @@ export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
             key={tab.id}
             ref={el => (tabRefs.current[tab.id] = el)}
             className={`${styles.tab}${active === tab.id ? ` ${styles.tabActive}` : ""}`}
-            onClick={(e) => { e.stopPropagation(); setActive(tab.id); setDropdownOpen(false); }}
+            onClick={(e) => { e.stopPropagation(); selectTab(tab.id); }}
           >
             {tab.label}
           </button>
@@ -107,18 +105,10 @@ export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
 
       <div className={styles.underline} />
 
-      <div className={styles.viewport}>
-        <div
-          className={styles.track}
-          style={{ transform: `translateX(-${activeIndex * 100}%)` }}
-        >
-          {TABS.map(tab => (
-            <div key={tab.id} className={styles.panel}>
-              {panels[tab.id] ?? <DefaultPanel label={tab.label} />}
-            </div>
-          ))}
-        </div>
+      <div className={styles.panelWrap}>
+        {panels[active] ?? <DefaultPanel label={activeTab.label} />}
       </div>
+
     </div>
   );
 }

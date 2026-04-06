@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import PropertyCard from '../Properties/PropertyCard'
-import styles from '../css/Details/detailsTab.module.css';
+import styles from '../css/Details/RelatedListingsCarousel.module.css';
 
 const PER_SCROLL = 3
 

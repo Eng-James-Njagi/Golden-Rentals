@@ -1,0 +1,530 @@
+'use client';
+
+import { useState, useCallback, useEffect } from 'react';
+import Image from 'next/image'
+import { useRouter } from 'next/navigation';
+import styles from '../css/Lister/AddListing.module.css';
+
+/* ─── Icon primitive ─── */
+const Icon = ({ d, className }) => (
+  <svg
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+    className={className ?? styles.fieldIcon} aria-hidden="true"
+  >
+    <path d={d} />
+  </svg>
+);
+
+const icons = {
+  tag:    'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01',
+  map:    'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z',
+  grid:   'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+  layers: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+  clock:  'M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0-14v4l3 3',
+  sofa:   'M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3M2 11a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6H2v-6zM4 17v2M20 17v2',
+  phone:  'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z',
+  dollar: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+  image:  'M21 15l-5-5L5 21M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 5h6M19 2v6',
+  video:  'M23 7l-7 5 7 5V7zM1 5h15a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H1a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z',
+  align:  'M17 10H3M21 6H3M21 14H3M17 18H3',
+  back:   'M19 12H5M12 19l-7-7 7-7',
+  link:   'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71',
+};
+
+/* ─── Static options (not from API) ─── */
+const DURATIONS = [ 'Short Term', 'Long Term' ];
+const FURNITURE = [ 'Furnished', 'Unfurnished' ];
+
+/* ─── Required fields for validation ─── */
+const REQUIRED = [ 'name', 'ward', 'ward_location', 'property_location', 'category', 'type', 'duration', 'furniture', 'phone', 'price', 'description' ];
+
+/* ─── Initial form state ─── */
+const EMPTY = {
+  name:              '',
+  ward:              '',   // ward_name — resolved to ward_id server-side
+  ward_location:     '',   // specific street/estate within the ward
+  property_location: '',   // Google Maps embed URL
+  category:          '',
+  type:              '',
+  duration:          '',
+  furniture:         '',
+  phone:             '',
+  price:             '',
+  description:       '',
+  images:            [ null, null, null ],
+  video:             null,
+};
+
+/* ─── Sub-components ─── */
+
+const FieldInput = ({ icon, label, name, type = 'text', value, onChange, hint, errors, placeholder }) => (
+  <div className={styles.fieldRow}>
+    <Icon d={icons[ icon ]} />
+    <div className={styles.fieldBody}>
+      <label className={styles.fieldLabel} htmlFor={name}>{label}</label>
+      <input
+        id={name} name={name} type={type} value={value}
+        onChange={onChange} placeholder={placeholder ?? ''}
+        className={`${styles.fieldInput} ${errors?.[ name ] ? styles.error : ''}`}
+        autoComplete="off"
+      />
+      {hint && <span className={styles.fieldHint}>{hint}</span>}
+      {errors?.[ name ] && <span className={styles.fieldError}>{errors[ name ]}</span>}
+    </div>
+  </div>
+);
+
+/*
+ * FieldSelect accepts either:
+ *   options: string[]                      → value = label
+ *   options: { value: string|number, label: string }[]  → value = id
+ */
+const FieldSelect = ({ icon, label, name, options = [], value, onChange, errors, disabled }) => (
+  <div className={styles.fieldRow}>
+    <Icon d={icons[ icon ]} />
+    <div className={styles.fieldBody}>
+      <label className={styles.fieldLabel} htmlFor={name}>{label}</label>
+      <select
+        id={name} name={name} value={value} onChange={onChange} disabled={disabled}
+        className={`${styles.fieldSelect} ${errors?.[ name ] ? styles.error : ''}`}
+      >
+        <option value="">{disabled ? '— select category first —' : 'Select…'}</option>
+        {options.map(o =>
+          typeof o === 'string'
+            ? <option key={o} value={o}>{o}</option>
+            : <option key={o.value} value={o.value}>{o.label}</option>
+        )}
+      </select>
+      {errors?.[ name ] && <span className={styles.fieldError}>{errors[ name ]}</span>}
+    </div>
+  </div>
+);
+
+const FieldTextarea = ({ icon, label, name, value, onChange, errors, hint }) => (
+  <div className={styles.fieldRow}>
+    <Icon d={icons[ icon ]} />
+    <div className={styles.fieldBody}>
+      <label className={styles.fieldLabel} htmlFor={name}>{label}</label>
+      <textarea
+        id={name} name={name} value={value} onChange={onChange}
+        className={`${styles.fieldTextarea} ${errors?.[ name ] ? styles.error : ''}`}
+        rows={4}
+      />
+      {hint && <span className={styles.fieldHint}>{hint}</span>}
+      {errors?.[ name ] && <span className={styles.fieldError}>{errors[ name ]}</span>}
+    </div>
+  </div>
+);
+
+/* ─── Section wrapper ─── */
+const Section = ({ title, children }) => (
+  <div className={styles.section}>
+    <div className={styles.sectionHeader}>
+      <span className={styles.sectionTitle}>{title}</span>
+    </div>
+    <div className={styles.sectionBody}>{children}</div>
+  </div>
+);
+
+/* ─── Image upload slot ─── */
+const ImageSlot = ({ file, onChange, label }) => {
+  const preview = file ? URL.createObjectURL(file) : null;
+  return (
+    <label className={styles.uploadSlot}>
+      {preview
+        ? <Image
+            src={preview}
+            width={20}
+            height={30}
+            alt="preview"
+            className={styles.uploadSlotPreview} />
+        : <>
+            <Icon d={icons.image} className={styles.uploadIcon} />
+            <span>{label}</span>
+          </>
+      }
+      <input type="file" accept="image/*" onChange={onChange} />
+    </label>
+  );
+};
+
+/* ─── Discard confirmation popup ─── */
+const DiscardPopup = ({ onContinue, onDiscard }) => (
+  <div className={styles.overlay}>
+    <div className={styles.popup}>
+      <p className={styles.popupTitle}>Discard changes?</p>
+      <p className={styles.popupBody}>
+        All entered listing data will be cleared. This cannot be undone.
+      </p>
+      <div className={styles.popupActions}>
+        <button className={styles.popupDiscard} onClick={onDiscard}>Discard</button>
+        <button className={styles.popupContinue} onClick={onContinue}>Continue editing</button>
+      </div>
+    </div>
+  </div>
+);
+
+/* ═══════════════════════════════════════════════
+   Main component
+══════════════════════════════════════════════ */
+export default function AddListing() {
+  const router = useRouter();
+
+  /* ── Filters from API ── */
+  const [ filters, setFilters ] = useState({ wards: [], categories: [] });
+  const [ filtersLoading, setFiltersLoading ] = useState(true);
+  const [ filtersError, setFiltersError ] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/filters')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load filter options.');
+        return res.json();
+      })
+      .then(json => setFilters(json))
+      .catch(err => setFiltersError(err.message))
+      .finally(() => setFiltersLoading(false));
+  }, []);
+
+  const [ form, setForm ] = useState(EMPTY);
+  const [ errors, setErrors ] = useState({});
+  const [ isDirty, setIsDirty ] = useState(false);
+  const [ showPopup, setShowPopup ] = useState(false);
+  const [ submitting, setSubmitting ] = useState(false);
+  const [ serverError, setServerError ] = useState(null);
+
+  /* ── Derived select options (depend on filters + form.category) ── */
+  const wardOptions = filters.wards.map(w => ({
+    value: w.ward_name,
+    label: w.ward_name,
+  }));
+
+  const categoryOptions = filters.categories.map(c => ({
+    value: c.category_id,
+    label: c.category_name,
+  }));
+
+  // Only show types that belong to the selected category
+  const selectedCategory = filters.categories.find(
+    c => String(c.category_id) === String(form.category)
+  );
+  const typeOptions = (selectedCategory?.types ?? []).map(t => ({
+    value: t.type_id,
+    label: t.type_name,
+  }));
+
+  /* ── Generic field change ── */
+  const handleChange = useCallback(e => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [ name ]: value }));
+    setIsDirty(true);
+    setErrors(prev => ({ ...prev, [ name ]: undefined }));
+  }, []);
+
+  /* ── Category change — resets type since options change ── */
+  const handleCategoryChange = useCallback(e => {
+    const { value } = e.target;
+    setForm(prev => ({ ...prev, category: value, type: '' }));
+    setIsDirty(true);
+    setErrors(prev => ({ ...prev, category: undefined, type: undefined }));
+  }, []);
+
+  /* ── Image slot change ── */
+  const handleImage = useCallback((index, e) => {
+    const file = e.target.files?.[ 0 ] ?? null;
+    setForm(prev => {
+      const images = [ ...prev.images ];
+      images[ index ] = file;
+      return { ...prev, images };
+    });
+    setIsDirty(true);
+  }, []);
+
+  /* ── Video change ── */
+  const handleVideo = useCallback(e => {
+    const file = e.target.files?.[ 0 ] ?? null;
+    setForm(prev => ({ ...prev, video: file }));
+    setIsDirty(true);
+  }, []);
+
+  /* ── Discard flow ── */
+  const triggerDiscard = () => setShowPopup(true);
+
+  const confirmDiscard = () => {
+    setForm(EMPTY);
+    setErrors({});
+    setIsDirty(false);
+    setShowPopup(false);
+    setServerError(null);
+  };
+
+  const dismissPopup = () => setShowPopup(false);
+
+  /* ── Back ── */
+  const handleBack = () => {
+    if (isDirty) {
+      setShowPopup(true);
+    } else {
+      router.back();
+    }
+  };
+
+  /* ── Validation ── */
+  const validate = () => {
+    const errs = {};
+    REQUIRED.forEach(field => {
+      if (!form[ field ] || String(form[ field ]).trim() === '') {
+        errs[ field ] = 'Required';
+      }
+    });
+    // Basic phone check
+    if (form.phone && !/^\d{6,15}$/.test(form.phone.replace(/\s/g, ''))) {
+      errs.phone = 'Enter a valid phone number';
+    }
+    // Price numeric
+    if (form.price && isNaN(Number(form.price))) {
+      errs.price = 'Must be a number';
+    }
+    // Google Maps URL check
+    if (form.property_location && !form.property_location.includes('google.com/maps')) {
+      errs.property_location = 'Must be a Google Maps embed URL';
+    }
+    return errs;
+  };
+
+  /* ── Submit ── */
+  const handleSubmit = async () => {
+    const errs = validate();
+
+    const MAX_BYTES = 2 * 1024 * 1024; // 2 MB
+    form.images.forEach((file, i) => {
+      if (file && file.size > MAX_BYTES) {
+        errs[ `image_${i}` ] = `Image ${i + 1} exceeds 2 MB`;
+      }
+    });
+    if (form.video && form.video.size > MAX_BYTES) {
+      errs.video = 'Video exceeds 2 MB';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+
+    setSubmitting(true);
+    setServerError(null);
+
+    try {
+      const fd = new FormData();
+      fd.append('name',              form.name);
+      fd.append('ward',              form.ward);
+      fd.append('ward_location',     form.ward_location);
+      fd.append('property_location', form.property_location);
+      fd.append('category_id',       form.category);
+      fd.append('type_id',           form.type);
+      fd.append('duration',          form.duration);
+      fd.append('furniture',         form.furniture);
+      fd.append('phone',             form.phone);
+      fd.append('price',             form.price);
+      fd.append('description',       form.description);
+
+      form.images.forEach((file, i) => {
+        if (file) fd.append(`image_${i}`, file);
+      });
+      if (form.video) fd.append('video', form.video);
+
+      const res = await fetch('/api/AddListing', { method: 'POST', body: fd });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Failed to post listing.');
+
+      router.push('/Admin/Lister');
+
+    } catch (err) {
+      setServerError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  /* ─── Render ─── */
+  return (
+    <div className={styles.root}>
+
+      {/* Top bar */}
+      <div className={styles.topBar}>
+        <h1 className={styles.pageTitle}>Post a property</h1>
+
+        {isDirty && (
+          <div className={styles.topActions}>
+            <button className={styles.backBtn} onClick={handleBack}>Back</button>
+            <button className={styles.discardBtn} onClick={triggerDiscard}>Discard</button>
+          </div>
+        )}
+      </div>
+
+      {serverError && <p className={styles.errorBanner}>{serverError}</p>}
+      {filtersError && <p className={styles.errorBanner}>Could not load options: {filtersError}</p>}
+
+      <div className={styles.sectionsGrid}>
+
+        {/* ── Left column: Details ── */}
+        <Section title="Details">
+          <FieldInput
+            icon="tag" label="Name" name="name"
+            value={form.name} onChange={handleChange} errors={errors}
+            placeholder="e.g. Westlands 2BR Apartment"
+          />
+          <FieldSelect
+            icon="map" label="Ward" name="ward"
+            options={wardOptions} value={form.ward}
+            onChange={handleChange} errors={errors}
+            disabled={filtersLoading}
+          />
+          <FieldInput
+            icon="map" label="Ward Location" name="ward_location"
+            value={form.ward_location} onChange={handleChange} errors={errors}
+            placeholder="e.g. Opposite Total Petrol Station"
+            hint="Specific street or landmark within the ward"
+          />
+          <FieldInput
+            icon="link" label="Google Maps URL" name="property_location"
+            value={form.property_location} onChange={handleChange} errors={errors}
+            placeholder="https://www.google.com/maps/embed?pb=..."
+            hint="Paste the embed URL from Google Maps → Share → Embed a map"
+          />
+          <FieldSelect
+            icon="grid" label="Category" name="category"
+            options={categoryOptions} value={form.category}
+            onChange={handleCategoryChange} errors={errors}
+            disabled={filtersLoading}
+          />
+          <FieldSelect
+            icon="layers" label="Type" name="type"
+            options={typeOptions} value={form.type}
+            onChange={handleChange} errors={errors}
+            disabled={!form.category || filtersLoading}
+          />
+          <FieldSelect
+            icon="clock" label="Duration" name="duration"
+            options={DURATIONS} value={form.duration}
+            onChange={handleChange} errors={errors}
+          />
+          <FieldSelect
+            icon="sofa" label="Furniture" name="furniture"
+            options={FURNITURE} value={form.furniture}
+            onChange={handleChange} errors={errors}
+          />
+        </Section>
+
+        {/* ── Right column: Contact, Media, Description ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+          <Section title="Contact & pricing">
+            {/* Phone with country prefix */}
+            <div className={styles.fieldRow}>
+              <Icon d={icons.phone} />
+              <div className={styles.fieldBody}>
+                <label className={styles.fieldLabel} htmlFor="phone">Phone</label>
+                <div className={styles.phoneGroup}>
+                  <input
+                    value="+254" readOnly
+                    className={`${styles.fieldInput} ${styles.phonePrefix}`}
+                    aria-label="Country code"
+                  />
+                  <input
+                    id="phone" name="phone" type="tel" value={form.phone}
+                    onChange={handleChange} placeholder="7XX XXX XXX"
+                    className={`${styles.fieldInput} ${errors.phone ? styles.error : ''}`}
+                  />
+                </div>
+                {errors.phone && <span className={styles.fieldError}>{errors.phone}</span>}
+              </div>
+            </div>
+
+            <FieldInput
+              icon="dollar" label="Price (KES)" name="price" type="number"
+              value={form.price} onChange={handleChange} errors={errors}
+              placeholder="e.g. 45000"
+              hint="Monthly rent or sale price"
+            />
+          </Section>
+
+          <Section title="Media">
+            {/* Images */}
+            <div className={styles.fieldRow}>
+              <Icon d={icons.image} />
+              <div className={styles.fieldBody}>
+                <span className={styles.fieldLabel}>Images (up to 3)</span>
+                <div className={styles.imageGroup}>
+                  {form.images.map((file, i) => (
+                    <div key={i}>
+                      <ImageSlot
+                        file={file}
+                        label={`Img ${i + 1}`}
+                        onChange={e => handleImage(i, e)}
+                      />
+                      {errors[ `image_${i}` ] && (
+                        <span className={styles.fieldError}>{errors[ `image_${i}` ]}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Video */}
+            <div className={styles.fieldRow}>
+              <Icon d={icons.video} />
+              <div className={styles.fieldBody}>
+                <span className={styles.fieldLabel}>Video (optional)</span>
+                <div className={styles.imageGroup}>
+                  <label className={styles.uploadSlot}>
+                    <Icon d={icons.video} className={styles.uploadIcon} />
+                    <span>{form.video ? form.video.name.slice(0, 10) + '…' : 'Upload'}</span>
+                    <input type="file" accept="video/*" onChange={handleVideo} />
+                  </label>
+                </div>
+                {errors.video && (
+                  <span className={styles.fieldError}>{errors.video}</span>
+                )}
+              </div>
+            </div>
+          </Section>
+
+        </div>
+      </div>
+
+      {/* Description — full width, spans both columns */}
+      <Section title="Description">
+        <FieldTextarea
+          icon="align" label="Description" name="description"
+          value={form.description} onChange={handleChange} errors={errors}
+          hint="Highlight key features, nearby amenities, access etc."
+        />
+      </Section>
+
+      {/* Submit — full width below grid */}
+      <div className={styles.section} style={{ marginTop: 8 }}>
+        <div className={styles.submitRow}>
+          <button
+            className={styles.submitBtn}
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? 'Posting…' : 'POST PROPERTY'}
+          </button>
+        </div>
+      </div>
+
+      {/* Discard confirmation popup */}
+      {showPopup && (
+        <DiscardPopup
+          onContinue={dismissPopup}
+          onDiscard={confirmDiscard}
+        />
+      )}
+
+    </div>
+  );
+}
