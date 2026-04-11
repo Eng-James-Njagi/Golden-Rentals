@@ -1,4 +1,5 @@
 import React from "react";
+import Link from 'next/link'
 import "../css/About/PropertyOwnerSection.css";
 
 const SearchIcon = () => (
@@ -35,11 +36,6 @@ export default function HomeSeekerSection() {
         <p className="po-quote-sub">
           Whether you&apos;re searching for a place to call home or ready to turn your property into opportunity — your next chapter is already waiting.
         </p>
-      </div>
-
-      {/* Bottom Buttons */}
-      <div className="po-bottom-btns">
-        <button className="po-btn-filled">Browse Properties</button>
       </div>
 
       {/* Label */}
@@ -84,17 +80,19 @@ export default function HomeSeekerSection() {
             <h3 className="po-card-title">Connect</h3>
           </div>
           <p className="po-card-body">
-            Ready to take the next step? Reach out directly 
-            to property listers hrough our secure messaging system — no middlemen, no delays, 
+            Ready to take the next step? Reach out directly
+            to property listers hrough our secure messaging system — no middlemen, no delays,
             ust a direct line to your future home.
           </p>
         </div>
       </div>
 
       {/* CTA Button */}
-      <button className="po-cta-btn">
-        Browse Our Catalog →
-      </button>
+      <Link href="/properties">
+        <button className="po-cta-btn">
+          Browse Our Catalog →
+        </button>
+      </Link>
 
     </section>
   );

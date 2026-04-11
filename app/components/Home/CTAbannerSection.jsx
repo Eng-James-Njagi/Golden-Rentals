@@ -1,4 +1,5 @@
 import React from "react";
+import Link from 'next/link'
 import "../css/Home/CTABannerSection.css";
 
 const InstagramIcon = () => (
@@ -25,15 +26,16 @@ export default function CTABannerSection() {
   return (
     <section className="cta-section">
       <div className="cta-inner">
-        {/* Blue overlay panel */}
         <div className="cta-panel">
           <p className="cta-body">
             Join the realtors who are transforming idle properties into performing assets. Shift from waiting for deals to building a system that generates them. It is time to operate differently and position your portfolio for measurable growth.
           </p>
 
-          <button className="cta-btn">
-            Become A Lister Today →
-          </button>
+          <Link href="/properties">
+            <button className="cta-btn">
+              Become A Lister Today →
+            </button>
+          </Link>
 
           <div className="cta-socials">
             <a href="#" className="cta-social-link" aria-label="Instagram"><InstagramIcon /></a>

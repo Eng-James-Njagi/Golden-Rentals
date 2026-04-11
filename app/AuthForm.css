@@ -144,7 +144,7 @@
    background: rgba(255, 255, 255, 0.13);
 }
 
-/* ── RIGHT FORM PANEL ── */
+
 .panel-form {
    flex: 1;
    padding: 36px 40px;
@@ -153,6 +153,13 @@
    justify-content: center;
    overflow-y: auto;
    animation: formIn 0.34s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.field-error .input-row {
+  border-color: #e53e3e;
+}
+.error-msg {
+  color: #e53e3e;
 }
 
 @keyframes formIn {
