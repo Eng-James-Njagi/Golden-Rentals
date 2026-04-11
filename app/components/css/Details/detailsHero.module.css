@@ -220,7 +220,8 @@
    gap: 8px;
    padding: 14px 12px;
    background: #2ecc5f;
-   color: #fff;
+   border:2px solid black;
+   color: #000000;
    font-size: 15px;
    font-weight: 700;
    font-family:var(--font-inter);

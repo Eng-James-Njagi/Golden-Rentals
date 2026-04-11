@@ -2,6 +2,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Toaster } from 'sonner'
 import Navbar from "./components/nav"
 import Footer from './components/footer'
 
@@ -28,16 +29,17 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body 
-      data-scroll-behavior='smooth'
-      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}>
-        <Navbar/>
+      <body
+        data-scroll-behavior='smooth'
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}>
+        <Analytics />
+        <SpeedInsights />
+        <Toaster />
+        <Navbar />
         <main>
           {children}
-          <Analytics />
-          <SpeedInsights />
         </main>
-        <Footer/>
+        <Footer />
       </body>
     </html>
   );

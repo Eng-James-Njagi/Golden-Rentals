@@ -1,4 +1,5 @@
 import React from "react";
+import Link from 'next/link'
 import "../css/About/PropertyOwnerSection.css";
 
 const RegisterIcon = () => (
@@ -73,9 +74,11 @@ export default function PropertyOwnerSection() {
       </div>
 
       {/* CTA Button */}
-      <button className="po-cta-btn">
-        Start Listing — It&apos;s Free →
-      </button>
+      <Link href="/Auth">
+        <button className="po-cta-btn">
+          Start Listing — It&apos;s Free →
+        </button>
+      </Link>
 
       {/* Quote Section */}
       <div className="po-quote-section">
@@ -91,8 +94,12 @@ export default function PropertyOwnerSection() {
 
       {/* Bottom Buttons */}
       <div className="po-bottom-btns">
-        <button className="po-btn-filled">Browse Properties</button>
-        <button className="po-btn-outline">Become A Lister</button>
+        <Link href="/properties">
+          <button className="po-btn-filled">Browse Properties</button>
+        </Link>
+        <Link href="/Auth">
+          <button className="po-btn-outline">Become A Lister</button>
+        </Link>
       </div>
 
     </section>
