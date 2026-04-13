@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image'
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import styles from '../css/Lister/AddListing.module.css';
 
@@ -17,19 +18,19 @@ const Icon = ({ d, className }) => (
 );
 
 const icons = {
-  tag:    'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01',
-  map:    'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z',
-  grid:   'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+  tag: 'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01',
+  map: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z',
+  grid: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
   layers: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
-  clock:  'M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0-14v4l3 3',
-  sofa:   'M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3M2 11a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6H2v-6zM4 17v2M20 17v2',
-  phone:  'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z',
+  clock: 'M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0-14v4l3 3',
+  sofa: 'M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3M2 11a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6H2v-6zM4 17v2M20 17v2',
+  phone: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z',
   dollar: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
-  image:  'M21 15l-5-5L5 21M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 5h6M19 2v6',
-  video:  'M23 7l-7 5 7 5V7zM1 5h15a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H1a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z',
-  align:  'M17 10H3M21 6H3M21 14H3M17 18H3',
-  back:   'M19 12H5M12 19l-7-7 7-7',
-  link:   'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71',
+  image: 'M21 15l-5-5L5 21M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 5h6M19 2v6',
+  video: 'M23 7l-7 5 7 5V7zM1 5h15a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H1a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z',
+  align: 'M17 10H3M21 6H3M21 14H3M17 18H3',
+  back: 'M19 12H5M12 19l-7-7 7-7',
+  link: 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71',
 };
 
 /* ─── Static options (not from API) ─── */
@@ -41,19 +42,19 @@ const REQUIRED = [ 'name', 'ward', 'ward_location', 'property_location', 'catego
 
 /* ─── Initial form state ─── */
 const EMPTY = {
-  name:              '',
-  ward:              '',   // ward_name — resolved to ward_id server-side
-  ward_location:     '',   // specific street/estate within the ward
+  name: '',
+  ward: '',   // ward_name — resolved to ward_id server-side
+  ward_location: '',   // specific street/estate within the ward
   property_location: '',   // Google Maps embed URL
-  category:          '',
-  type:              '',
-  duration:          '',
-  furniture:         '',
-  phone:             '',
-  price:             '',
-  description:       '',
-  images:            [ null, null, null ],
-  video:             null,
+  category: '',
+  type: '',
+  duration: '',
+  furniture: '',
+  phone: '',
+  price: '',
+  description: '',
+  images: [ null, null, null ],
+  video: null,
 };
 
 /* ─── Sub-components ─── */
@@ -134,15 +135,15 @@ const ImageSlot = ({ file, onChange, label }) => {
     <label className={styles.uploadSlot}>
       {preview
         ? <Image
-            src={preview}
-            width={20}
-            height={30}
-            alt="preview"
-            className={styles.uploadSlotPreview} />
+          src={preview}
+          width={20}
+          height={30}
+          alt="preview"
+          className={styles.uploadSlotPreview} />
         : <>
-            <Icon d={icons.image} className={styles.uploadIcon} />
-            <span>{label}</span>
-          </>
+          <Icon d={icons.image} className={styles.uploadIcon} />
+          <span>{label}</span>
+        </>
       }
       <input type="file" accept="image/*" onChange={onChange} />
     </label>
@@ -256,6 +257,7 @@ export default function AddListing() {
     setErrors({});
     setIsDirty(false);
     setShowPopup(false);
+    toast.success('Data Discarded')
     setServerError(null);
   };
 
@@ -317,17 +319,17 @@ export default function AddListing() {
 
     try {
       const fd = new FormData();
-      fd.append('name',              form.name);
-      fd.append('ward',              form.ward);
-      fd.append('ward_location',     form.ward_location);
+      fd.append('name', form.name);
+      fd.append('ward', form.ward);
+      fd.append('ward_location', form.ward_location);
       fd.append('property_location', form.property_location);
-      fd.append('category_id',       form.category);
-      fd.append('type_id',           form.type);
-      fd.append('duration',          form.duration);
-      fd.append('furniture',         form.furniture);
-      fd.append('phone',             form.phone);
-      fd.append('price',             form.price);
-      fd.append('description',       form.description);
+      fd.append('category_id', form.category);
+      fd.append('type_id', form.type);
+      fd.append('duration', form.duration);
+      fd.append('furniture', form.furniture);
+      fd.append('phone', form.phone);
+      fd.append('price', form.price);
+      fd.append('description', form.description);
 
       form.images.forEach((file, i) => {
         if (file) fd.append(`image_${i}`, file);
@@ -338,7 +340,10 @@ export default function AddListing() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? 'Failed to post listing.');
 
-      router.push('/Admin/Lister');
+      setForm(EMPTY);
+      setIsDirty(false);
+      toast.success('Property posted successfully!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (err) {
       setServerError(err.message);

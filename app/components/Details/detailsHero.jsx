@@ -22,7 +22,7 @@ export default function PropertyHero({ listing }) {
     category_name,
     type_name,
     ward_name,
-    description,
+    ward_location,
     phone_number,
     media = [],
   } = listing;
@@ -32,8 +32,8 @@ export default function PropertyHero({ listing }) {
     .filter(m => m.image_url || m.video_url)
     .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
-  const [activeIndex, setActiveIndex] = useState(0);
-  const active = mediaItems[activeIndex] ?? null;
+  const [ activeIndex, setActiveIndex ] = useState(0);
+  const active = mediaItems[ activeIndex ] ?? null;
   const furnished = property_interior?.toLowerCase();
 
   return (
@@ -148,6 +148,14 @@ export default function PropertyHero({ listing }) {
               {ward_name}
             </span>
           )}
+          {ward_location && (
+            <span className={styles.chip}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M3 11l19-9-9 19-2-8-8-2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+              </svg>
+              {ward_location}
+            </span>
+          )}
         </div>
 
         {furnished && (
@@ -157,7 +165,7 @@ export default function PropertyHero({ listing }) {
         )}
 
         {rent_duration && (
-          <span className={styles.durationBadge}>Rent Duration: 
+          <span className={styles.durationBadge}>Rent Duration:
             {rent_duration === 'short-term' ? ' Short Term' : ' Long Term'}
           </span>
         )}

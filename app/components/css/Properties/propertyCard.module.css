@@ -15,7 +15,6 @@
   border-color: var(--primary);
 }
 
-/* ── Image ──────────────────────────── */
 .imageWrap {
   position: relative;
   width: 100%;
@@ -44,16 +43,32 @@
 }
 
 /* ── Badges ─────────────────────────── */
+.badgeRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
 .badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
   padding: 3px 10px;
   font-family: var(--font-geist-mono);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.durationTag {
+  padding: 3px 10px;
+  font-family: var(--font-geist-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--secondary);
+  color: #1a1a2e;
   border-radius: 2px;
 }
 
@@ -67,28 +82,23 @@
   color: #ffffff;
 }
 
-.durationTag {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 3px 10px;
-  font-family: var(--font-geist-mono);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: var(--secondary);
-  color: #1a1a2e;
-  border-radius: 2px;
-}
 
 /* ── Body ───────────────────────────── */
 .body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 14px 16px;
+  justify-content: space-evenly;
+  padding: 12px 14px 12px;
   flex: 1;
+}
+
+.bodyContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  flex: 1;
+  padding:2px;
+  gap:8px;
 }
 
 .categoryLabel {
@@ -139,8 +149,8 @@
 /* ── Meta row ───────────────────────── */
 .metaRow {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction:column;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -164,13 +174,6 @@
 
 .wardBtn:hover {
   color: var(--primary);
-}
-
-.metaDivider {
-  width: 1px;
-  height: 12px;
-  background: #ddd;
-  flex-shrink: 0;
 }
 
 .metaItem {

@@ -1,6 +1,7 @@
 import ListerNav from "../../components/ListerNav";
 import AccountSettings from "../../components/Lister/Accountsetting"
 import AddListing from '../../components/Lister/AddListing'
+import MyListings from '../../components/Lister/listings'
 export default function ListerLand() {
   return (
     <>
@@ -8,8 +9,9 @@ export default function ListerLand() {
         defaultTab="listings"
         panels={{
           account: <AccountSettings />,
-          add: <AddListing/>
-         /* listings: <YourListingsComponent />,
+          add: <AddListing/>,
+          listings: <MyListings/>
+         /*  />,
           analytics: <YourAnalyticsComponent />,
           add: <YourAddListingComponent />,
           account: <YourAccountComponent />,*/
