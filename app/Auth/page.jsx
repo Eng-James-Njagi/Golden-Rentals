@@ -215,7 +215,7 @@ export default function AuthForm() {
           return;
         }
 
-        router.push("/Admin/Lister");
+        router.push("/User/Lister");
       }
 
     } catch (err) {

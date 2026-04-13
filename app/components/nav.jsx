@@ -51,7 +51,7 @@ export default function Navbar() {
   const navLinks = [
     { label: 'Home', path: '/' },
     { label: 'Properties', path: '/properties' },
-    ...(session ? [ { label: 'Dashboard', path: '/Admin/Lister' } ] : []),
+    ...(session ? [ { label: 'Dashboard', path: '/User/Lister' } ] : []),
     { label: 'About', path: '/about' },
   ];
 

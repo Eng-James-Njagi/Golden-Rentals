@@ -34,7 +34,9 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}>
         <Analytics />
         <SpeedInsights />
-        <Toaster />
+        <Toaster 
+        position="top-right"
+        richColors/>
         <Navbar />
         <main>
           {children}
