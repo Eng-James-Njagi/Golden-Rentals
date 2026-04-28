@@ -7,7 +7,7 @@ export async function POST(req) {
   const { mode, ...fields } = await req.json();
 
   if (mode === "signup") return handleSignup(fields);
-  if (mode === "login")  return handleLogin(fields);
+  if (mode === "login") return handleLogin(fields);
 
   return NextResponse.json({ error: "Invalid mode." }, { status: 400 });
 }
@@ -32,12 +32,12 @@ async function handleSignup({ username, password, email, organisationName, conta
   const { error: profileError } = await supabase
     .from("Listers_Info")
     .insert({
-      lister_UUID:    userId,
-      username:       username,
-      lister_email:   email,
-      lister_org:     organisationName ?? null,
+      lister_UUID: userId,
+      username: username,
+      lister_email: email,
+      lister_org: organisationName ?? null,
       lister_contact: contact ?? null,
-      lister_ward:    ward ?? null,
+      lister_ward: ward ?? null,
     });
 
   if (profileError) {
@@ -47,30 +47,42 @@ async function handleSignup({ username, password, email, organisationName, conta
 
   return NextResponse.json({ success: true, userId }, { status: 201 });
 }
-
 async function handleLogin({ username }) {
   if (!username) {
     return NextResponse.json({ error: "Username is required." }, { status: 400 });
   }
 
+  // Check listers first
   const { data: profile, error: profileError } = await supabase
     .from("Listers_Info")
     .select("lister_UUID")
     .eq("username", username)
     .single();
 
-  if (profileError || !profile) {
+  if (!profileError && profile) {
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
+      profile.lister_UUID
+    );
+
+    if (userError || !userData?.user?.email) {
+      return NextResponse.json({ error: "Invalid username or password." }, { status: 401 });
+    }
+
+    return NextResponse.json({ email: userData.user.email, role: "lister" }, { status: 200 });
+  }
+
+  // Not a lister — check admin table
+  const { data: admin, error: adminError } = await supabase
+  .from("Admin Table")
+  .select("lister_uuid, email")
+  .eq("username", username)
+  .single();
+
+  console.log("adminError:", adminError);
+  console.log("admin:", admin);
+  if (adminError || !admin) {
     return NextResponse.json({ error: "Invalid username or password." }, { status: 401 });
   }
 
-  const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
-    profile.lister_UUID
-  );
-
-  if (userError || !userData?.user?.email) {
-    return NextResponse.json({ error: "Invalid username or password." }, { status: 401 });
-  }
-
-  // Return email only — browser does the actual signInWithPassword
-  return NextResponse.json({ email: userData.user.email }, { status: 200 });
+  return NextResponse.json({ email: admin.email, role: "admin" }, { status: 200 });
 }
