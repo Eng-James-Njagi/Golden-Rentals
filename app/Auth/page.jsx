@@ -215,7 +215,7 @@ export default function AuthForm() {
           return;
         }
 
-        router.push("/User/Lister");
+        router.push(data.role === "admin" ? "/User/Admin" : "/User/Lister");
       }
 
     } catch (err) {

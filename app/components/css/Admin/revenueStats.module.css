@@ -1,0 +1,101 @@
+.revenueSection {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1.25rem 0;
+  margin-top: 1rem;
+}
+
+/* ── Duration block ── */
+.durationBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+.durationLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #111827;
+  font-family: var(--font-geist-mono);
+}
+
+.durationGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.durationOption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.durationRadio {
+  width: 13px;
+  height: 13px;
+  accent-color: #1a1a2e;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.durationText {
+  font-size: 0.8125rem;
+  color: #374151;
+  font-family: var(--font-inter);
+  user-select: none;
+}
+
+/* ── Revenue cards ── */
+.revenueCards {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.revenueCard {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: #ffffff;
+  min-width: 0;
+}
+
+.revenueCardLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  font-family: var(--font-geist-sans);
+  line-height: 1.35;
+}
+
+.revenueCardValue {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  font-family: var(--font-inter);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .revenueSection {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .revenueCards {
+    flex-direction: column;
+  }
+
+  .durationBlock {
+    min-width: unset;
+  }
+}
