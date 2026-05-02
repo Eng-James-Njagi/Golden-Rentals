@@ -1,12 +1,10 @@
 import { createServerSupabaseClient, createAdminClient } from '../../../lib/supabase/server';
 import { redirect } from 'next/navigation';
-import AdminNav from "../../components/Admin/AdminNav";
-import Dashboard from '../../components/Admin/dashboard';
+import AdminPanel from './components/AdminPanel';
 
 export default async function AdminLand() {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   if (!user) redirect('/Auth');
 
   const admin = createAdminClient();
@@ -18,15 +16,5 @@ export default async function AdminLand() {
 
   if (!data) redirect('/User/Lister');
 
-  return (
-    <AdminNav
-      defaultTab="dashboard"
-      panels={{ dashboard: <Dashboard /> 
-         /*
-        analytics: <Analytics />,
-        verification: <VerificationCompliance />,
-        account: <AccountSettings />,*/
-      }}
-    />
-  );
+  return <AdminPanel />;
 }

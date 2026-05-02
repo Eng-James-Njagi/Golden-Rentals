@@ -1,0 +1,251 @@
+.adminRoot {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+  font-family: var(--font-geist-sans);
+}
+
+/* ── Profile header ── */
+.adminProfileHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 2.5rem;
+}
+
+.adminAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-geist-mono);
+  font-size: 17px;
+  font-weight: 500;
+  color: #F5A623;
+  flex-shrink: 0;
+}
+
+.adminProfileMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adminProfileName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.adminProfileEmail {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0;
+  font-family: var(--font-geist-mono);
+}
+
+/* ── Grid ── */
+.adminSectionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: start;
+}
+
+/* ── Section card ── */
+.adminSection {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.adminSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.adminSectionTitle {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-family: var(--font-geist-mono);
+}
+
+.adminHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adminSavedBadge {
+  font-size: 0.6875rem;
+  font-family: var(--font-geist-mono);
+  color: #059669;
+  background: #d1fae5;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.adminEditBtn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #F5A623;
+  background: none;
+  border: 1px solid #F5A623;
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.adminEditBtn:hover {
+  background: #F5A623;
+  color: #fff;
+}
+
+.adminSaveBtn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #fff;
+  background: #1a1a2e;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 14px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.adminSaveBtn:hover { opacity: 0.82; }
+.adminSaveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.adminCancelBtn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.adminCancelBtn:hover { border-color: #9ca3af; }
+.adminCancelBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Section body ── */
+.adminSectionBody {
+  padding: 4px 0;
+}
+
+/* ── Field rows ── */
+.adminFieldRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.adminFieldRow:last-child {
+  border-bottom: none;
+}
+
+.adminFieldIcon {
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.adminFieldBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.adminFieldLabel {
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  font-family: var(--font-geist-mono);
+  letter-spacing: 0.03em;
+}
+
+.adminFieldValue {
+  font-size: 0.875rem;
+  color: #111827;
+  font-weight: 400;
+  word-break: break-all;
+}
+
+.adminMasked {
+  letter-spacing: 0.12em;
+  color: #9ca3af;
+}
+
+.adminFieldInput {
+  font-size: 0.875rem;
+  font-family: var(--font-geist-sans);
+  color: #111827;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 7px 10px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.adminFieldInput:focus {
+  border-color: #F5A623;
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.12);
+}
+
+.adminFieldHint {
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  margin-top: 4px;
+  font-family: var(--font-geist-mono);
+}
+
+/* ── Loading ── */
+.adminLoading {
+  font-size: 0.875rem;
+  color: #6b7280;
+  padding: 2rem 0;
+  font-family: var(--font-geist-mono);
+}
+
+/* ── Error banner ── */
+.adminErrorBanner {
+  font-size: 0.8125rem;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 1rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 780px) {
+  .adminSectionsGrid {
+    grid-template-columns: 1fr;
+  }
+}
