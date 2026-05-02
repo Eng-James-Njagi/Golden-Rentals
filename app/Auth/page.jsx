@@ -245,7 +245,7 @@ export default function AuthForm() {
                 : "Create an account to get started and access all features."}
             </p>
             <button className="panel-btn" onClick={toggleMode}>
-              {isSignup ? "Sign In" : "Sign Up"}
+              {isSignup ? "Log In" : "Sign Up"}
             </button>
           </div>
         </div>
