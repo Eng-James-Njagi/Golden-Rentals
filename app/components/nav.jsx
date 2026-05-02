@@ -12,6 +12,7 @@ export default function Navbar() {
   const [ menuOpen, setMenuOpen ] = useState(false);
   const [ scrolled, setScrolled ] = useState(false);
   const [ session, setSession ] = useState(null);
+  const role = session?.user?.user_metadata?.role;
   const pathname = usePathname();
   const router = useRouter();
 
@@ -51,7 +52,8 @@ export default function Navbar() {
   const navLinks = [
     { label: 'Home', path: '/' },
     { label: 'Properties', path: '/properties' },
-    ...(session ? [ { label: 'Dashboard', path: '/User/Lister' } ] : []),
+    ...(role === 'admin' ? [ { label: 'Dashboard', path: '/User/Admin' } ] : []),
+    ...(role === 'lister' ? [ { label: 'Dashboard', path: '/User/Lister' } ] : []),
     { label: 'About', path: '/about' },
   ];
 

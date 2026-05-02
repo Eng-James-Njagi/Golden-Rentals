@@ -68,21 +68,27 @@ async function handleLogin({ username }) {
       return NextResponse.json({ error: "Invalid username or password." }, { status: 401 });
     }
 
+    await supabase.auth.admin.updateUserById(profile.lister_UUID, {
+      user_metadata: { role: 'lister' }
+    });
+
     return NextResponse.json({ email: userData.user.email, role: "lister" }, { status: 200 });
   }
 
-  // Not a lister — check admin table
-  const { data: admin, error: adminError } = await supabase
-  .from("Admin Table")
-  .select("lister_uuid, email")
-  .eq("username", username)
-  .single();
 
-  console.log("adminError:", adminError);
-  console.log("admin:", admin);
-  if (adminError || !admin) {
+  const { data: adminData, error: adminError } = await supabase
+    .from('Admin Table')
+    .select('lister_uuid, email')
+    .eq('username', username)
+    .single();
+
+  if (adminError || !adminData) {
     return NextResponse.json({ error: "Invalid username or password." }, { status: 401 });
   }
 
-  return NextResponse.json({ email: admin.email, role: "admin" }, { status: 200 });
+  await supabase.auth.admin.updateUserById(adminData.lister_uuid, {
+    user_metadata: { role: 'admin' }
+  });
+
+  return NextResponse.json({ email: adminData.email, role: "admin" }, { status: 200 });
 }
