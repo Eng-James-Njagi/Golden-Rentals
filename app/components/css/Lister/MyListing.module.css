@@ -1,11 +1,30 @@
 /* ── Header ── */
 .header {
   display: flex;
-  align-items: baseline;
+  align-items: center; 
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
+/* Wraps the counts to the right of the title */
+.headerMeta {
+   display: flex;
+   align-items: center;
+   gap: 0.4rem;
+}
+ 
+/* Separator dot between counts */
+.metaDivider {
+   font-size: 0.8rem;
+   color: var(--color-muted, #bbb);
+   font-family: var(--font-geist-mono);
+   user-select: none;
+}
+ 
+/* Slot count turns amber when can_add is false */
+.countWarning {
+   color: #b45309;
+}
 .title {
   font-size: 1.1rem;
   font-weight: 600;
@@ -67,6 +86,7 @@
   border-radius: 6px;
   transition: background 0.15s ease;
   font-weight: 500;
+  font-family:var(--font-geist-sans)
 }
 
 .deleteBtn:hover:not(:disabled) {
@@ -90,6 +110,7 @@
 .confirmText {
   font-size: 0.75rem;
   color: var(--color-text, #111);
+  font-family:var(--font-inter);
   font-weight: 500;
   flex: 1;
 }
@@ -99,6 +120,7 @@
   font-weight: 600;
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
+  
   border: none;
   cursor: pointer;
   background: var(--color-danger, #c0392b);
