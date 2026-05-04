@@ -23,6 +23,7 @@ export default function PropertyHero({ listing }) {
     type_name,
     ward_name,
     ward_location,
+    listing_id,
     phone_number,
     media = [],
   } = listing;
@@ -180,7 +181,17 @@ export default function PropertyHero({ listing }) {
         )}
 
         {phone_number && (
-          <a href={`tel:${phone_number}`} className={styles.contactBtn}>
+
+          <a href={`tel:${phone_number}`}
+            className={styles.contactBtn}
+            onClick={(e) => {
+              e.preventDefault(); 
+              fetch(`/api/listings/${listing_id}/calls`, { method: 'POST' })
+                .finally(() => {
+                  window.location.href = `tel:${phone_number}`; 
+                });
+            }}
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M6.6 10.8a15.4 15.4 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C9.61 21 3 14.39 3 6.5a1 1 0 0 1 1-1H7.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.24 1.02L6.6 10.8Z"
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -189,6 +200,6 @@ export default function PropertyHero({ listing }) {
           </a>
         )}
       </div>
-    </section>
+    </section >
   );
 }
