@@ -43,9 +43,9 @@ const REQUIRED = [ 'name', 'ward', 'ward_location', 'property_location', 'catego
 /* ─── Initial form state ─── */
 const EMPTY = {
   name: '',
-  ward: '',   // ward_name — resolved to ward_id server-side
-  ward_location: '',   // specific street/estate within the ward
-  property_location: '',   // Google Maps embed URL
+  ward: '',
+  ward_location: '',
+  property_location: '',
   category: '',
   type: '',
   duration: '',
@@ -59,7 +59,7 @@ const EMPTY = {
 
 /* ─── Sub-components ─── */
 
-const FieldInput = ({ icon, label, name, type = 'text', value, onChange, hint, errors, placeholder }) => (
+const FieldInput = ({ icon, label, name, type = 'text', value, onChange, hint, errors, placeholder, disabled }) => (
   <div className={styles.fieldRow}>
     <Icon d={icons[ icon ]} />
     <div className={styles.fieldBody}>
@@ -67,6 +67,7 @@ const FieldInput = ({ icon, label, name, type = 'text', value, onChange, hint, e
       <input
         id={name} name={name} type={type} value={value}
         onChange={onChange} placeholder={placeholder ?? ''}
+        disabled={disabled}
         className={`${styles.fieldInput} ${errors?.[ name ] ? styles.error : ''}`}
         autoComplete="off"
       />
@@ -76,11 +77,6 @@ const FieldInput = ({ icon, label, name, type = 'text', value, onChange, hint, e
   </div>
 );
 
-/*
- * FieldSelect accepts either:
- *   options: string[]                      → value = label
- *   options: { value: string|number, label: string }[]  → value = id
- */
 const FieldSelect = ({ icon, label, name, options = [], value, onChange, errors, disabled }) => (
   <div className={styles.fieldRow}>
     <Icon d={icons[ icon ]} />
@@ -102,13 +98,14 @@ const FieldSelect = ({ icon, label, name, options = [], value, onChange, errors,
   </div>
 );
 
-const FieldTextarea = ({ icon, label, name, value, onChange, errors, hint }) => (
+const FieldTextarea = ({ icon, label, name, value, onChange, errors, hint, disabled }) => (
   <div className={styles.fieldRow}>
     <Icon d={icons[ icon ]} />
     <div className={styles.fieldBody}>
       <label className={styles.fieldLabel} htmlFor={name}>{label}</label>
       <textarea
         id={name} name={name} value={value} onChange={onChange}
+        disabled={disabled}
         className={`${styles.fieldTextarea} ${errors?.[ name ] ? styles.error : ''}`}
         rows={4}
       />
@@ -129,10 +126,10 @@ const Section = ({ title, children }) => (
 );
 
 /* ─── Image upload slot ─── */
-const ImageSlot = ({ file, onChange, label }) => {
+const ImageSlot = ({ file, onChange, label, disabled }) => {
   const preview = file ? URL.createObjectURL(file) : null;
   return (
-    <label className={styles.uploadSlot}>
+    <label className={`${styles.uploadSlot} ${disabled ? styles.uploadSlotDisabled : ''}`}>
       {preview
         ? <Image
           src={preview}
@@ -145,7 +142,7 @@ const ImageSlot = ({ file, onChange, label }) => {
           <span>{label}</span>
         </>
       }
-      <input type="file" accept="image/*" onChange={onChange} />
+      <input type="file" accept="image/*" onChange={onChange} disabled={disabled} />
     </label>
   );
 };
@@ -166,10 +163,18 @@ const DiscardPopup = ({ onContinue, onDiscard }) => (
   </div>
 );
 
+/* ── Extract clean URL from raw input or full iframe tag ── */
+const extractGoogleMapsUrl = (input) => {
+  if (!input) return '';
+  const trimmed = input.trim();
+  const srcMatch = trimmed.match(/src=["']([^"']+)["']/);
+  if (srcMatch) return srcMatch[ 1 ];
+  return trimmed.replace(/^["']|["']$/g, '');
+};
 /* ═══════════════════════════════════════════════
    Main component
 ══════════════════════════════════════════════ */
-export default function AddListing() {
+export default function AddListing({ canAdd = true }) {
   const router = useRouter();
 
   /* ── Filters from API ── */
@@ -195,7 +200,7 @@ export default function AddListing() {
   const [ submitting, setSubmitting ] = useState(false);
   const [ serverError, setServerError ] = useState(null);
 
-  /* ── Derived select options (depend on filters + form.category) ── */
+  /* ── Derived select options ── */
   const wardOptions = filters.wards.map(w => ({
     value: w.ward_name,
     label: w.ward_name,
@@ -206,7 +211,6 @@ export default function AddListing() {
     label: c.category_name,
   }));
 
-  // Only show types that belong to the selected category
   const selectedCategory = filters.categories.find(
     c => String(c.category_id) === String(form.category)
   );
@@ -215,15 +219,18 @@ export default function AddListing() {
     label: t.type_name,
   }));
 
+
+
   /* ── Generic field change ── */
   const handleChange = useCallback(e => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [ name ]: value }));
+    const normalized = name === 'property_location' ? extractGoogleMapsUrl(value) : value;
+    setForm(prev => ({ ...prev, [ name ]: normalized }));
     setIsDirty(true);
     setErrors(prev => ({ ...prev, [ name ]: undefined }));
   }, []);
 
-  /* ── Category change — resets type since options change ── */
+  /* ── Category change ── */
   const handleCategoryChange = useCallback(e => {
     const { value } = e.target;
     setForm(prev => ({ ...prev, category: value, type: '' }));
@@ -240,6 +247,7 @@ export default function AddListing() {
       return { ...prev, images };
     });
     setIsDirty(true);
+    setErrors(prev => ({ ...prev, [ `image_${index}` ]: undefined }));
   }, []);
 
   /* ── Video change ── */
@@ -257,7 +265,7 @@ export default function AddListing() {
     setErrors({});
     setIsDirty(false);
     setShowPopup(false);
-    toast.success('Data Discarded')
+    toast.success('Data Discarded');
     setServerError(null);
   };
 
@@ -272,43 +280,55 @@ export default function AddListing() {
     }
   };
 
-  /* ── Validation ── */
+  /* ── Validation — single source of truth for all fields and media ── */
   const validate = () => {
     const errs = {};
+    const MAX_BYTES = 2 * 1024 * 1024;
+
+    // Required text fields
     REQUIRED.forEach(field => {
       if (!form[ field ] || String(form[ field ]).trim() === '') {
         errs[ field ] = 'Required';
       }
     });
-    // Basic phone check
+
+    // Phone format
     if (form.phone && !/^\d{6,15}$/.test(form.phone.replace(/\s/g, ''))) {
       errs.phone = 'Enter a valid phone number';
     }
-    // Price numeric
+
+    // Price must be numeric
     if (form.price && isNaN(Number(form.price))) {
       errs.price = 'Must be a number';
     }
-    // Google Maps URL check
+
+    // Google Maps URL
     if (form.property_location && !form.property_location.includes('google.com/maps')) {
       errs.property_location = 'Must be a Google Maps embed URL';
     }
+
+    // All three image slots required, each must be a valid File
+    form.images.forEach((file, i) => {
+      if (!(file instanceof File) || file.size === 0) {
+        errs[ `image_${i}` ] = `Image ${i + 1} is required`;
+      } else if (file.size > MAX_BYTES) {
+        errs[ `image_${i}` ] = `Image ${i + 1} exceeds 2 MB`;
+      }
+    });
+
+    // Video size (optional — only validate if present)
+    if (form.video instanceof File && form.video.size > MAX_BYTES) {
+      errs.video = 'Video exceeds 2 MB';
+    }
+
     return errs;
   };
 
   /* ── Submit ── */
   const handleSubmit = async () => {
+    if (!canAdd) return;
+
     const errs = validate();
-
-    const MAX_BYTES = 2 * 1024 * 1024; // 2 MB
-    form.images.forEach((file, i) => {
-      if (file && file.size > MAX_BYTES) {
-        errs[ `image_${i}` ] = `Image ${i + 1} exceeds 2 MB`;
-      }
-    });
-    if (form.video && form.video.size > MAX_BYTES) {
-      errs.video = 'Video exceeds 2 MB';
-    }
-
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
@@ -356,7 +376,7 @@ export default function AddListing() {
   return (
     <div className={styles.root}>
 
-      {/* Top bar */}
+      {/* Top bar — always visible */}
       <div className={styles.topBar}>
         <h1 className={styles.pageTitle}>Post a property</h1>
 
@@ -371,156 +391,181 @@ export default function AddListing() {
       {serverError && <p className={styles.errorBanner}>{serverError}</p>}
       {filtersError && <p className={styles.errorBanner}>Could not load options: {filtersError}</p>}
 
-      <div className={styles.sectionsGrid}>
+      {/* ── No-slots banner ── */}
+      {!canAdd && (
+        <div className={styles.noSlotsBanner}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          You have no listing slots available. Go to <strong>Listings</strong> to purchase more slots.
+        </div>
+      )}
 
-        {/* ── Left column: Details ── */}
-        <Section title="Details">
-          <FieldInput
-            icon="tag" label="Name" name="name"
-            value={form.name} onChange={handleChange} errors={errors}
-            placeholder="e.g. Westlands 2BR Apartment"
-          />
-          <FieldSelect
-            icon="map" label="Ward" name="ward"
-            options={wardOptions} value={form.ward}
-            onChange={handleChange} errors={errors}
-            disabled={filtersLoading}
-          />
-          <FieldInput
-            icon="map" label="Ward Location" name="ward_location"
-            value={form.ward_location} onChange={handleChange} errors={errors}
-            placeholder="e.g. Opposite Total Petrol Station"
-            hint="Specific street or landmark within the ward"
-          />
-          <FieldInput
-            icon="link" label="Google Maps URL" name="property_location"
-            value={form.property_location} onChange={handleChange} errors={errors}
-            placeholder="https://www.google.com/maps/embed?pb=..."
-            hint="Paste the embed URL from Google Maps → Share → Embed a map"
-          />
-          <FieldSelect
-            icon="grid" label="Category" name="category"
-            options={categoryOptions} value={form.category}
-            onChange={handleCategoryChange} errors={errors}
-            disabled={filtersLoading}
-          />
-          <FieldSelect
-            icon="layers" label="Type" name="type"
-            options={typeOptions} value={form.type}
-            onChange={handleChange} errors={errors}
-            disabled={!form.category || filtersLoading}
-          />
-          <FieldSelect
-            icon="clock" label="Duration" name="duration"
-            options={DURATIONS} value={form.duration}
-            onChange={handleChange} errors={errors}
-          />
-          <FieldSelect
-            icon="sofa" label="Furniture" name="furniture"
-            options={FURNITURE} value={form.furniture}
-            onChange={handleChange} errors={errors}
-          />
-        </Section>
+      {/* ── Greyed form area ── */}
+      <div className={!canAdd ? styles.formDisabled : undefined}>
 
-        {/* ── Right column: Contact, Media, Description ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className={styles.sectionsGrid}>
 
-          <Section title="Contact & pricing">
-            {/* Phone with country prefix */}
-            <div className={styles.fieldRow}>
-              <Icon d={icons.phone} />
-              <div className={styles.fieldBody}>
-                <label className={styles.fieldLabel} htmlFor="phone">Phone</label>
-                <div className={styles.phoneGroup}>
-                  <input
-                    value="+254" readOnly
-                    className={`${styles.fieldInput} ${styles.phonePrefix}`}
-                    aria-label="Country code"
-                  />
-                  <input
-                    id="phone" name="phone" type="tel" value={form.phone}
-                    onChange={handleChange} placeholder="7XX XXX XXX"
-                    className={`${styles.fieldInput} ${errors.phone ? styles.error : ''}`}
-                  />
-                </div>
-                {errors.phone && <span className={styles.fieldError}>{errors.phone}</span>}
-              </div>
-            </div>
-
+          {/* ── Left column: Details ── */}
+          <Section title="Details">
             <FieldInput
-              icon="dollar" label="Price (KES)" name="price" type="number"
-              value={form.price} onChange={handleChange} errors={errors}
-              placeholder="e.g. 45000"
-              hint="Monthly rent or sale price"
+              icon="tag" label="Name" name="name"
+              value={form.name} onChange={handleChange} errors={errors}
+              placeholder="e.g. Westlands 2BR Apartment"
+              disabled={!canAdd}
+            />
+            <FieldSelect
+              icon="map" label="Ward" name="ward"
+              options={wardOptions} value={form.ward}
+              onChange={handleChange} errors={errors}
+              disabled={filtersLoading || !canAdd}
+            />
+            <FieldInput
+              icon="map" label="Ward Location" name="ward_location"
+              value={form.ward_location} onChange={handleChange} errors={errors}
+              placeholder="e.g. Opposite Total Petrol Station"
+              hint="Specific street or landmark within the ward"
+              disabled={!canAdd}
+            />
+            <FieldInput
+              icon="link" label="Google Maps URL" name="property_location"
+              value={form.property_location} onChange={handleChange} errors={errors}
+              placeholder="https://www.google.com/maps/embed?pb=..."
+              hint="Paste the embed URL from Google Maps → Share → Embed a map"
+              disabled={!canAdd}
+            />
+            <FieldSelect
+              icon="grid" label="Category" name="category"
+              options={categoryOptions} value={form.category}
+              onChange={handleCategoryChange} errors={errors}
+              disabled={filtersLoading || !canAdd}
+            />
+            <FieldSelect
+              icon="layers" label="Type" name="type"
+              options={typeOptions} value={form.type}
+              onChange={handleChange} errors={errors}
+              disabled={!form.category || filtersLoading || !canAdd}
+            />
+            <FieldSelect
+              icon="clock" label="Duration" name="duration"
+              options={DURATIONS} value={form.duration}
+              onChange={handleChange} errors={errors}
+              disabled={!canAdd}
+            />
+            <FieldSelect
+              icon="sofa" label="Furniture" name="furniture"
+              options={FURNITURE} value={form.furniture}
+              onChange={handleChange} errors={errors}
+              disabled={!canAdd}
             />
           </Section>
 
-          <Section title="Media">
-            {/* Images */}
-            <div className={styles.fieldRow}>
-              <Icon d={icons.image} />
-              <div className={styles.fieldBody}>
-                <span className={styles.fieldLabel}>Images (up to 3)</span>
-                <div className={styles.imageGroup}>
-                  {form.images.map((file, i) => (
-                    <div key={i}>
-                      <ImageSlot
-                        file={file}
-                        label={`Img ${i + 1}`}
-                        onChange={e => handleImage(i, e)}
-                      />
-                      {errors[ `image_${i}` ] && (
-                        <span className={styles.fieldError}>{errors[ `image_${i}` ]}</span>
-                      )}
-                    </div>
-                  ))}
+          {/* ── Right column: Contact, Media ── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+            <Section title="Contact & pricing">
+              <div className={styles.fieldRow}>
+                <Icon d={icons.phone} />
+                <div className={styles.fieldBody}>
+                  <label className={styles.fieldLabel} htmlFor="phone">Phone</label>
+                  <div className={styles.phoneGroup}>
+                    <input
+                      value="+254" readOnly
+                      className={`${styles.fieldInput} ${styles.phonePrefix}`}
+                      aria-label="Country code"
+                      disabled={!canAdd}
+                    />
+                    <input
+                      id="phone" name="phone" type="tel" value={form.phone}
+                      onChange={handleChange} placeholder="7XX XXX XXX"
+                      disabled={!canAdd}
+                      className={`${styles.fieldInput} ${errors.phone ? styles.error : ''}`}
+                    />
+                  </div>
+                  {errors.phone && <span className={styles.fieldError}>{errors.phone}</span>}
                 </div>
               </div>
-            </div>
 
-            {/* Video */}
-            <div className={styles.fieldRow}>
-              <Icon d={icons.video} />
-              <div className={styles.fieldBody}>
-                <span className={styles.fieldLabel}>Video (optional)</span>
-                <div className={styles.imageGroup}>
-                  <label className={styles.uploadSlot}>
-                    <Icon d={icons.video} className={styles.uploadIcon} />
-                    <span>{form.video ? form.video.name.slice(0, 10) + '…' : 'Upload'}</span>
-                    <input type="file" accept="video/*" onChange={handleVideo} />
-                  </label>
+              <FieldInput
+                icon="dollar" label="Price (KES)" name="price" type="number"
+                value={form.price} onChange={handleChange} errors={errors}
+                placeholder="e.g. 45000"
+                hint="Monthly rent or sale price"
+                disabled={!canAdd}
+              />
+            </Section>
+
+            <Section title="Media">
+              <div className={styles.fieldRow}>
+                <Icon d={icons.image} />
+                <div className={styles.fieldBody}>
+                  <span className={styles.fieldLabel}>Images (3 required)</span>
+                  <div className={styles.imageGroup}>
+                    {form.images.map((file, i) => (
+                      <div key={i}>
+                        <ImageSlot
+                          file={file}
+                          label={`Img ${i + 1}`}
+                          onChange={e => handleImage(i, e)}
+                          disabled={!canAdd}
+                        />
+                        {errors[ `image_${i}` ] && (
+                          <span className={styles.fieldError}>{errors[ `image_${i}` ]}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                {errors.video && (
-                  <span className={styles.fieldError}>{errors.video}</span>
-                )}
               </div>
-            </div>
-          </Section>
 
+              <div className={styles.fieldRow}>
+                <Icon d={icons.video} />
+                <div className={styles.fieldBody}>
+                  <span className={styles.fieldLabel}>Video (optional)</span>
+                  <div className={styles.imageGroup}>
+                    <label className={`${styles.uploadSlot} ${!canAdd ? styles.uploadSlotDisabled : ''}`}>
+                      <Icon d={icons.video} className={styles.uploadIcon} />
+                      <span>{form.video ? form.video.name.slice(0, 10) + '…' : 'Upload'}</span>
+                      <input type="file" accept="video/*" onChange={handleVideo} disabled={!canAdd} />
+                    </label>
+                  </div>
+                  {errors.video && (
+                    <span className={styles.fieldError}>{errors.video}</span>
+                  )}
+                </div>
+              </div>
+            </Section>
+
+          </div>
         </div>
-      </div>
 
-      {/* Description — full width, spans both columns */}
-      <Section title="Description">
-        <FieldTextarea
-          icon="align" label="Description" name="description"
-          value={form.description} onChange={handleChange} errors={errors}
-          hint="Highlight key features, nearby amenities, access etc."
-        />
-      </Section>
+        {/* Description — full width */}
+        <Section title="Description">
+          <FieldTextarea
+            icon="align" label="Description" name="description"
+            value={form.description} onChange={handleChange} errors={errors}
+            hint="Highlight key features, nearby amenities, access etc."
+            disabled={!canAdd}
+          />
+        </Section>
 
-      {/* Submit — full width below grid */}
-      <div className={styles.section} style={{ marginTop: 8 }}>
-        <div className={styles.submitRow}>
-          <button
-            className={styles.submitBtn}
-            onClick={handleSubmit}
-            disabled={submitting}
-          >
-            {submitting ? 'Posting…' : 'POST PROPERTY'}
-          </button>
+        {/* Submit */}
+        <div className={styles.section} style={{ marginTop: 8 }}>
+          <div className={styles.submitRow}>
+            <button
+              className={styles.submitBtn}
+              onClick={handleSubmit}
+              disabled={submitting || !canAdd}
+            >
+              {submitting ? 'Posting…' : 'POST PROPERTY'}
+            </button>
+          </div>
         </div>
-      </div>
+
+      </div>{/* end formDisabled wrapper */}
 
       {/* Discard confirmation popup */}
       {showPopup && (

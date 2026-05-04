@@ -1,15 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createBrowserSupabaseClient } from '../../../lib/supabase/client';
 import PropertyCard from '../Properties/PropertyCard';
 import styles from '../css/Lister/MyListing.module.css';
-
-const supabase = createBrowserSupabaseClient();
+import AddSlotCard from './AddslotCard';
 
 const PAGE_SIZE = 20;
 
-export default function MyListings() {
+export default function MyListings({ slotData, onSlotAdded }) {
    const [ listings, setListings ] = useState([]);
    const [ pagination, setPagination ] = useState(null);
    const [ currentPage, setCurrentPage ] = useState(1);
@@ -17,18 +15,14 @@ export default function MyListings() {
    const [ error, setError ] = useState(null);
    const [ deletingId, setDeletingId ] = useState(null);
    const [ deleteError, setDeleteError ] = useState(null);
-   // Confirmation state: holds the listing_id pending confirmation, null otherwise
    const [ confirmId, setConfirmId ] = useState(null);
 
    const fetchListings = useCallback(async (page) => {
       setLoading(true);
       setError(null);
-
       try {
-
          const res = await fetch(`/api/Listing?page=${page}`);
          if (!res.ok) throw new Error('Failed to fetch listings.');
-
          const json = await res.json();
          setListings(json.data ?? []);
          setPagination(json.pagination ?? null);
@@ -48,8 +42,6 @@ export default function MyListings() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
    };
 
-   // First click → set confirmId (shows confirm state on that card)
-   // Second click → execute delete
    const handleDeleteClick = (listing_id) => {
       if (confirmId !== listing_id) {
          setConfirmId(listing_id);
@@ -65,13 +57,12 @@ export default function MyListings() {
       setDeletingId(listing_id);
       setDeleteError(null);
 
-      // Optimistic remove
       const prev = listings;
       setListings(ls => ls.filter(l => l.listing_id !== listing_id));
       setConfirmId(null);
 
       try {
-        const res = await fetch(`/api/Listing?listing_id=${listing_id}`, {
+         const res = await fetch(`/api/Listing?listing_id=${listing_id}`, {
             method: 'DELETE',
          });
 
@@ -80,10 +71,10 @@ export default function MyListings() {
             throw new Error(json.error ?? 'Delete failed.');
          }
 
-         // Refresh page count after successful delete
+         // Refresh listings and bubble slot refresh up to parent
          fetchListings(currentPage);
+         if (onSlotAdded) onSlotAdded();
       } catch (err) {
-         // Revert optimistic remove
          setListings(prev);
          setDeleteError(err.message);
       } finally {
@@ -91,7 +82,6 @@ export default function MyListings() {
       }
    };
 
-   // Pagination page numbers with ellipsis — mirrors PropertiesClient logic
    const totalPages = pagination?.total_pages ?? 1;
 
    const pageNumbers = () => {
@@ -116,9 +106,21 @@ export default function MyListings() {
          {/* ── Header ── */}
          <div className={styles.header}>
             <h2 className={styles.title}>My Listings</h2>
-            {!loading && pagination && (
-               <span className={styles.count}>{pagination.total_records} total</span>
-            )}
+            <div className={styles.headerMeta}>
+               {!loading && pagination && (
+                  <span className={styles.count}>
+                     {pagination.total_records} listing{pagination.total_records !== 1 ? 's' : ''}
+                  </span>
+               )}
+               {slotData && (
+                  <>
+                     <span className={styles.metaDivider}>·</span>
+                     <span className={`${styles.count} ${!slotData.can_add ? styles.countWarning : ''}`}>
+                        {slotData.slots} slot{slotData.slots !== 1 ? 's' : ''}
+                     </span>
+                  </>
+               )}
+            </div>
          </div>
 
          {/* ── Global delete error ── */}
@@ -140,6 +142,8 @@ export default function MyListings() {
             </div>
          )}
 
+         <AddSlotCard onSlotAdded={() => { fetchListings(currentPage); if (onSlotAdded) onSlotAdded(); }} />
+
          {/* ── Empty ── */}
          {!loading && !error && listings.length === 0 && (
             <div className={styles.emptyState}>
@@ -159,7 +163,6 @@ export default function MyListings() {
                   <div key={listing.listing_id} className={styles.cardWrapper}>
                      <PropertyCard listing={listing} />
 
-                     {/* Delete overlay — bottom strip on the card */}
                      <div className={styles.cardActions}>
                         {confirmId === listing.listing_id ? (
                            <div className={styles.confirmRow}>

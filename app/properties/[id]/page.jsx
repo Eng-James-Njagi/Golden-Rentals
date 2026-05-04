@@ -4,6 +4,7 @@ import PropertyHero from '../../components/Details/detailsHero';
 import PropertyTabs from '../../components/Details/detailsTab';
 import styles from '../../components/css/Details/detailsPage.module.css';
 import RelatedListingsCarousel from '../../components/Details/RelatedListingsCarousel'
+import ViewTracker from '../../components/Details/ViewTracker';
 
 async function getListing(id) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
@@ -37,28 +38,31 @@ export default async function PropertyDetailPage({ params }) {
   if (!listing) notFound();
 
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        {/* Back nav */}
-        <Link href="/properties" className={styles.backLink}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M19 12H5M5 12l7-7M5 12l7 7"
-              stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Back to listings
-        </Link>
+    <>
+      <ViewTracker listingId={listing.listing_id} />
+      <div className={styles.page}>
+        <div className={styles.container}>
+          {/* Back nav */}
+          <Link href="/properties" className={styles.backLink}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M19 12H5M5 12l7-7M5 12l7 7"
+                stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back to listings
+          </Link>
 
-        {/* Hero: gallery + info */}
-        <PropertyHero listing={listing} />
+          {/* Hero: gallery + info */}
+          <PropertyHero listing={listing} />
 
-        {/* Tabs: description + map */}
-        <PropertyTabs listing={listing} />
+          {/* Tabs: description + map */}
+          <PropertyTabs listing={listing} />
 
-        <RelatedListingsCarousel
-          categoryName={listing.category_name}
-          currentId={listing.listing_id}
-        />
+          <RelatedListingsCarousel
+            categoryName={listing.category_name}
+            currentId={listing.listing_id}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
