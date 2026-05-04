@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import styles from './css/Navigation/nav.module.css';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image'
 import { createBrowserSupabaseClient } from '../../lib/supabase/client';
 
 const supabase = createBrowserSupabaseClient();
@@ -61,10 +62,11 @@ export default function Navbar() {
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
       <div className={styles.brand}>
         <span className={styles.logoIcon}>
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 3L3 12V25H10V18H18V25H25V12L14 3Z" fill="#F5A623" />
-            <rect x="11" y="18" width="6" height="7" fill="#E8940A" />
-          </svg>
+          <Image 
+          width={28}
+          height={28}
+          alt="Logo"
+          src='/logo2.jpeg'/>
         </span>
         <span className={styles.brandName}>Golden Rentals</span>
       </div>
