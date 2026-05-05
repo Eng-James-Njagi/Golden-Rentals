@@ -6,6 +6,7 @@ import ListerNav from "../../components/ListerNav";
 import AccountSettings from "../../components/Lister/Accountsetting";
 import AddListing from '../../components/Lister/AddListing';
 import MyListings from '../../components/Lister/listings';
+import Analytics from '../../components/Lister/Analytics'
 
 const supabase = createBrowserSupabaseClient();
 
@@ -81,6 +82,7 @@ export default function ListerLand() {
               onSlotAdded={fetchSlots}
             />
           ),
+          analytics:<Analytics/>
         }}
       />
     </>
