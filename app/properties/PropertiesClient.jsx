@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import FilterSidebar from '../components/Properties/FilterSidebar'
 import PropertyCard from '../components/Properties/PropertyCard'
 import styles from '../components/css/Properties/properties.module.css'
+import { useTrackVisit } from '@/app/hooks/useTrackVisit';
 
 const PAGE_SIZE = 20
 
@@ -32,6 +33,7 @@ function filtersToParams(filters, page) {
 }
 
 export default function PropertiesClient() {
+  useTrackVisit()
   const router = useRouter()
   const searchParams = useSearchParams()
 

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from "react";
-import styles from "../css/Admin/AdminNav.module.css";
+import styles from "../css/AdminNav.module.css";
 
 const TABS = [
   {
