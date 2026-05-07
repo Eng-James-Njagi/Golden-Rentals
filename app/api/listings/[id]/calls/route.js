@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createBrowserSupabaseClient } from '@/lib/supabase/client';
-
-const supabase = createBrowserSupabaseClient();
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST(request, { params }) {
   const { id } = await params;
+  const supabase = await createServerSupabaseClient();
 
   const { error } = await supabase.rpc('increment_call_logs', { listing_id_input: Number(id) });
 
