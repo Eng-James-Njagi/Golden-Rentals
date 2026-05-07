@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import AdminNav from '../../../components/Admin/AdminNav';
-import Dashboard from '../../../components/Admin/dashboard';
-import AdminAccountSettings from '../../../components/Admin/accountSetting';
+import AdminNav from './AdminNav';
+import Dashboard from './dashboard';
+import AdminAccountSettings from './accountSetting';
 import VerificationList from './VerificationList';
 import VerificationDetail from './VerificationDetail';
 
