@@ -7,28 +7,45 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
 
     const filtered = searchParams.get('filtered') === 'true';
-    const start    = searchParams.get('start');
-    const end      = searchParams.get('end');
+    const start = searchParams.get('start');
+    const end = searchParams.get('end');
 
-    let query = supabase
+    // ── Revenue + Transactions ──
+    let revenueQuery = supabase
       .from('Payment_Ledger')
       .select('amount_kes', { count: 'exact' })
       .eq('status', 'complete');
 
     if (filtered && start && end) {
-      query = query
+      revenueQuery = revenueQuery
         .gte('created_at', start)
         .lte('created_at', end);
     }
 
-    const { data, error, count } = await query;
+    // ── Total Calls ──
+    let callsQuery = supabase
+      .from('call_events')
+      .select('id', { count: 'exact' });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (filtered && start && end) {
+      callsQuery = callsQuery
+        .gte('created_at', start)
+        .lte('created_at', end);
+    }
 
-    const totalRevenue      = (data ?? []).reduce((sum, row) => sum + (row.amount_kes ?? 0), 0);
-    const totalTransactions = count ?? 0;
+    const [ revenueResult, callsResult ] = await Promise.all([
+      revenueQuery,
+      callsQuery,
+    ]);
 
-    return NextResponse.json({ totalRevenue, totalTransactions });
+    if (revenueResult.error) return NextResponse.json({ error: revenueResult.error.message }, { status: 500 });
+    if (callsResult.error) return NextResponse.json({ error: callsResult.error.message }, { status: 500 });
+
+    const totalRevenue = (revenueResult.data ?? []).reduce((sum, row) => sum + (row.amount_kes ?? 0), 0);
+    const totalTransactions = revenueResult.count ?? 0;
+    const totalCalls = callsResult.count ?? 0;
+
+    return NextResponse.json({ totalRevenue, totalTransactions, totalCalls });
 
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
