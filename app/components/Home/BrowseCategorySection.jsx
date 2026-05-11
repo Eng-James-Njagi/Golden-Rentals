@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from 'next/navigation'
 import "../css/Home/BrowseCategorySection.css";
 import Image from 'next/image'
 
@@ -7,32 +8,32 @@ const categories = [
   {
     id: "rental-apartments",
     label: "Rental Apartments",
+    category_id: 1,
     image: "https://images.unsplash.com/photo-1629584603667-e8ad7c8feb0b?q=80&w=1174&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
-    id: "airbnbs",
-    label: "Airbnbs",
+    id: "airbnb",
+    label: "Airbnb and Hostels",
+    category_id: 2,
     image: "https://images.unsplash.com/photo-1553444836-bc6c8d340ba7?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
     id: "commercial-spaces",
     label: "Commercial Spaces",
+    category_id: 3,
     image: "https://images.unsplash.com/photo-1685009336777-3422a99d419b?q=80&w=2050&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
     id: "lodgings",
     label: "Lodgings",
+    category_id: 4,
     image: "https://images.unsplash.com/photo-1610333684078-c89bd57f2e46?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
   {
     id: "private-houses",
+    category_id: 5,
     label: "Private Houses & Homes",
     image: "https://plus.unsplash.com/premium_photo-1742418054084-5b6037976b3f?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "hostels",
-    label: "Hostels",
-    image: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   },
 ];
 
@@ -42,9 +43,10 @@ const CARD_GAP = 20;
 
 export default function BrowseByCategorySection() {
   const trackRef = useRef(null);
+  const router = useRouter()
   const [ canPrev, setCanPrev ] = useState(false);
   const [ canNext, setCanNext ] = useState(true);
-  const [ progress, setProgress ] = useState(); 
+  const [ progress, setProgress ] = useState();
 
   const updateButtons = () => {
     if (!trackRef.current) return;
@@ -67,13 +69,16 @@ export default function BrowseByCategorySection() {
   }, []);
 
   const scrollPrev = () => {
-    trackRef.current.scrollBy({ left: -(CARD_WIDTH + CARD_GAP)});
+    trackRef.current.scrollBy({ left: -(CARD_WIDTH + CARD_GAP) });
   };
   const scrollNext = () => {
-    trackRef.current.scrollBy({ left: CARD_WIDTH + CARD_GAP});
+    trackRef.current.scrollBy({ left: CARD_WIDTH + CARD_GAP });
   };
 
-  const handleCategoryClick = (id) => console.log("Navigate:", id);
+  const handleCategoryClick = (category_id) => {
+    if (!category_id) return
+    router.push(`/properties?category_id=${category_id}`)
+  }
 
 
   return (
@@ -116,19 +121,19 @@ export default function BrowseByCategorySection() {
       </div>
 
       {/* Carousel */}
-      <div className="bbc-carousel-outer"  ref={trackRef}>
+      <div className="bbc-carousel-outer" ref={trackRef}>
         <div className="bbc-carousel-track">
           {categories.map((cat) => (
             <div
               key={cat.id}
               className="bbc-card"
-              onClick={() => handleCategoryClick(cat.id)}
+              onClick={() => handleCategoryClick(cat.category_id)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === "Spacebar" || e.code === "Space") {
-                  e.preventDefault();
-                  handleCategoryClick(cat.id);
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  handleCategoryClick(cat.category_id)
                 }
               }}
 
