@@ -22,11 +22,11 @@ const FURNISHING = [
    { label: 'Un-Furnished', value: 'unfurnished' },
 ];
 
-export default function FilterSidebar({ onFilterChange }) {
+export default function FilterSidebar({ onFilterChange, initialFilters }) {
    const [ filterData, setFilterData ] = useState({ wards: [], categories: [] });
    const [ loading, setLoading ] = useState(true);
    const [ error, setError ] = useState(null);
-   const [collapsed, setCollapsed] = useState(false);
+   const [ collapsed, setCollapsed ] = useState(false);
 
    const [ isOpen, setIsOpen ] = useState(false);
    const [ expandedSections, setExpandedSections ] = useState({
@@ -39,13 +39,15 @@ export default function FilterSidebar({ onFilterChange }) {
    });
 
    const [ filters, setFilters ] = useState({
-      ward_id: null,
-      category_id: null,
-      type_ids: [],
-      price_range: null,
-      rent_duration: null,
-      property_interior: null,
-   });
+      ward_id: initialFilters?.ward_id ?? null,
+      category_id: initialFilters?.category_id ?? null,
+      type_ids: initialFilters?.type_ids ?? [],
+      price_range: initialFilters?.price_range ?? null,
+      rent_duration: initialFilters?.rent_duration ?? null,
+      property_interior: initialFilters?.property_interior ?? null,
+   })
+
+   const CATEGORY_ORDER = { 1: 0, 2: 1, 4: 2, 3: 3, 5: 4 }
 
    useEffect(() => {
       async function fetchFilters() {
@@ -53,6 +55,9 @@ export default function FilterSidebar({ onFilterChange }) {
             const res = await fetch('/api/filters');
             if (!res.ok) throw new Error('Failed to load filters');
             const data = await res.json();
+            data.categories = [ ...data.categories ].sort(
+               (a, b) => (CATEGORY_ORDER[ a.category_id ] ?? 99) - (CATEGORY_ORDER[ b.category_id ] ?? 99)
+            )
             setFilterData(data);
          } catch (err) {
             setError(err.message);

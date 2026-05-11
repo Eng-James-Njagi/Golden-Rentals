@@ -1,18 +1,20 @@
 'use client'
-
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import FilterSidebar from '../components/Properties/FilterSidebar'
 import PropertyCard from '../components/Properties/PropertyCard'
 import styles from '../components/css/Properties/properties.module.css'
-import { useTrackVisit } from '@/app/hooks/useTrackVisit';
+import { useTrackVisit } from '@/app/hooks/useTrackVisit'
 
 const PAGE_SIZE = 20
+
+const DEFAULT_CATEGORY_ID = 1
 
 function filtersFromParams(params) {
   return {
     ward_id: params.get('ward_id') ? Number(params.get('ward_id')) : null,
-    category_id: params.get('category_id') ? Number(params.get('category_id')) : null,
+    category_id: params.get('category_id') ? Number(params.get('category_id')) : DEFAULT_CATEGORY_ID,
     type_ids: params.get('type_ids') ? params.get('type_ids').split(',').map(Number) : [],
     price_range: params.get('price_range') || null,
     rent_duration: params.get('rent_duration') || null,
@@ -32,6 +34,14 @@ function filtersToParams(filters, page) {
   return params
 }
 
+async function fetchListings(filters, page) {
+  const params = filtersToParams(filters, page)
+  params.set('prefetch', 'true')
+  const res = await fetch(`/api/listings?${params.toString()}`)
+  if (!res.ok) throw new Error('Failed to fetch listings')
+  return res.json()
+}
+
 export default function PropertiesClient() {
   useTrackVisit()
   const router = useRouter()
@@ -39,53 +49,36 @@ export default function PropertiesClient() {
 
   const [ filters, setFilters ] = useState(() => filtersFromParams(searchParams))
   const [ currentPage, setCurrentPage ] = useState(() => Number(searchParams.get('page') ?? 1))
-  const [ listings, setListings ] = useState([])
-  const [ pagination, setPagination ] = useState(null)
-  const [ loading, setLoading ] = useState(true)
-  const [ error, setError ] = useState(null)
   const [ wardPopup, setWardPopup ] = useState(null)
 
-  const fetchListings = useCallback(async (page, activeFilters) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const params = filtersToParams(activeFilters, page)
-      params.set('prefetch', 'true')
-      const res = await fetch(`/api/listings?${params.toString()}`)
-      if (!res.ok) throw new Error('Failed to fetch listings')
-      const json = await res.json()
-      setListings(json.data ?? [])
-      setPagination(json.pagination)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const { data, isLoading, error } = useQuery({
+    queryKey: [ 'listings', filters, currentPage ],  // cache key — unique per filter+page combo
+    queryFn: () => fetchListings(filters, currentPage),
+    // inherits staleTime/gcTime from provider defaults
+  })
 
-  // fetch on page or filter change
-  useEffect(() => {
-    fetchListings(currentPage, filters)
-  }, [ currentPage, filters, fetchListings ])
+  const listings = data?.data ?? []
+  const pagination = data?.pagination ?? null
+  const totalPages = pagination?.total_pages ?? 1
 
   // sync URL
-  useEffect(() => {
-    const params = filtersToParams(filters, currentPage)
+  const syncUrl = (f, p) => {
+    const params = filtersToParams(f, p)
     const qs = params.toString()
     router.replace(qs ? `?${qs}` : '?', { scroll: false })
-  }, [ filters, currentPage, router ])
+  }
 
   const handleFilterChange = (updated) => {
     setFilters(updated)
     setCurrentPage(1)
+    syncUrl(updated, 1)
   }
 
   const handlePageChange = (page) => {
     setCurrentPage(page)
+    syncUrl(filters, page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-
-  const totalPages = pagination?.total_pages ?? 1
 
   const pageNumbers = () => {
     const pages = []
@@ -105,11 +98,11 @@ export default function PropertiesClient() {
 
   return (
     <div className={styles.pageLayout}>
-      <FilterSidebar onFilterChange={handleFilterChange} />
+      <FilterSidebar onFilterChange={handleFilterChange} initialFilters={filters} />
 
       <main className={styles.mainContent}>
         <div className={styles.resultsHeader}>
-          {!loading && pagination && (
+          {!isLoading && pagination && (
             <p className={styles.resultsCount}>
               {pagination.total_records} properties found
             </p>
@@ -118,11 +111,11 @@ export default function PropertiesClient() {
 
         {error && (
           <div className={styles.errorState}>
-            Failed to load listings — {error}
+            Failed to load listings — {error.message}
           </div>
         )}
 
-        {loading && (
+        {isLoading && (
           <div className={styles.grid}>
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className={styles.skeleton} />
@@ -130,7 +123,7 @@ export default function PropertiesClient() {
           </div>
         )}
 
-        {!loading && !error && listings.length === 0 && (
+        {!isLoading && !error && listings.length === 0 && (
           <div className={styles.emptyState}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
               <path d="M3 10V20M21 10V20M3 10h18M3 10L12 3l9 7" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
@@ -140,7 +133,7 @@ export default function PropertiesClient() {
           </div>
         )}
 
-        {!loading && listings.length > 0 && (
+        {!isLoading && listings.length > 0 && (
           <div className={styles.grid}>
             {listings.map(listing => (
               <PropertyCard
@@ -152,16 +145,14 @@ export default function PropertiesClient() {
           </div>
         )}
 
-        {!loading && totalPages > 1 && (
+        {!isLoading && totalPages > 1 && (
           <div className={styles.pagination}>
             <button
               className={styles.pageBtn}
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               aria-label="Previous page"
-            >
-              &#8592;
-            </button>
+            >&#8592;</button>
 
             {pageNumbers().map((p, i) =>
               p === '...' ? (
@@ -171,9 +162,7 @@ export default function PropertiesClient() {
                   key={p}
                   className={`${styles.pageBtn} ${p === currentPage ? styles.pageBtnActive : ''}`}
                   onClick={() => handlePageChange(p)}
-                >
-                  {p}
-                </button>
+                >{p}</button>
               )
             )}
 
@@ -182,9 +171,7 @@ export default function PropertiesClient() {
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               aria-label="Next page"
-            >
-              &#8594;
-            </button>
+            >&#8594;</button>
           </div>
         )}
       </main>
