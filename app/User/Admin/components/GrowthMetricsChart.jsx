@@ -63,6 +63,7 @@ export default function GrowthMetricsChart() {
 
    useEffect(() => {
       const selected = active === 'week' ? week : active === 'month' ? month : year;
+      console.log('Fetching range:', selected.start, selected.end);
       fetch(`/api/adminRo/analytics?start=${selected.start}&end=${selected.end}`)
          .then(r => r.json())
          .then(rows => setData(rows.map(r => ({

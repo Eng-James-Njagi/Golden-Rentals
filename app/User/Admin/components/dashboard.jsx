@@ -106,6 +106,17 @@ export default function Dashboard() {
       })));
   }, [ filtered, active, week, month, year ]);
 
+  useEffect(() => {
+    const start = new Date(Date.UTC(2020, 0, 1)).toISOString();
+    const end = new Date().toISOString();
+    fetch(`/api/adminRo/analytics?start=${start}&end=${end}`)
+      .then(r => r.json())
+      .then(rows => {
+        const total = rows.reduce((sum, r) => sum + Number(r.visits), 0);
+        setStats(prev => ({ ...prev, totalVisits: total }));
+      });
+  }, []);
+
   return (
     <>
       <section className={cardStyles.cardsSection}>

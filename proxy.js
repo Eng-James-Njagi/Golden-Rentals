@@ -11,13 +11,12 @@ export async function proxy(request) {
     {
       cookies: {
         getAll() { return request.cookies.getAll(); },
-        set(name, value, options) {
-          request.cookies.set(name, value);
-          supabaseResponse.cookies.set(name, value, options);
-        },
-        remove(name, options) {
-          request.cookies.delete(name);
-          supabaseResponse.cookies.delete(name);
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
         },
       },
     }
