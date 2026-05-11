@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import styles from '../css/accountSettings.module.css';
+import { toast } from 'sonner'
 
 const Icon = ({ d }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
@@ -18,7 +19,7 @@ const icons = {
 
 const FieldDisplay = ({ icon, label, value, masked = false }) => (
   <div className={styles.adminFieldRow}>
-    <Icon d={icons[icon]} />
+    <Icon d={icons[ icon ]} />
     <div className={styles.adminFieldBody}>
       <span className={styles.adminFieldLabel}>{label}</span>
       <span className={`${styles.adminFieldValue} ${masked ? styles.adminMasked : ''}`}>
@@ -30,7 +31,7 @@ const FieldDisplay = ({ icon, label, value, masked = false }) => (
 
 const FieldEdit = ({ icon, label, name, type = 'text', value, onChange, hint }) => (
   <div className={styles.adminFieldRow}>
-    <Icon d={icons[icon]} />
+    <Icon d={icons[ icon ]} />
     <div className={styles.adminFieldBody}>
       <label className={styles.adminFieldLabel} htmlFor={name}>{label}</label>
       <input
@@ -67,16 +68,18 @@ const Section = ({ title, children, editing, onEdit, onSave, onCancel, saved, lo
 const EMPTY = { username: '', email: '' };
 
 export default function AdminAccountSettings() {
-  const [data, setData] = useState(EMPTY);
-  const [fetching, setFetching] = useState(true);
-  const [error, setError] = useState(null);
+  const [ data, setData ] = useState(EMPTY);
+  const [ fetching, setFetching ] = useState(true);
+  const [ error, setError ] = useState(null);
 
-  const [accountDraft, setAccountDraft] = useState({ username: '', email: '', password: '' });
+  // separate drafts per section
+  const [ accountDraft, setAccountDraft ] = useState({ username: '' });
+  const [ securityDraft, setSecurityDraft ] = useState({ email: '', password: '' });
 
-  const [editing, setEditing] = useState({ account: false });
-  const [loading, setLoading] = useState({ account: false });
-  const [saved, setSaved] = useState({ account: false });
-  const [dirty, setDirty] = useState({ account: false });
+  const [ editing, setEditing ] = useState({ account: false, security: false });
+  const [ loading, setLoading ] = useState({ account: false, security: false });
+  const [ saved, setSaved ] = useState({ account: false, security: false });
+  const [ dirty, setDirty ] = useState({ account: false, security: false });
 
   const fetchAccount = () =>
     fetch('/api/adminRo/account')
@@ -86,64 +89,77 @@ export default function AdminAccountSettings() {
       })
       .then(json => {
         setData(json);
-        setAccountDraft({ username: json.username, email: json.email, password: '' });
+        setAccountDraft({ username: json.username });
+        setSecurityDraft({ email: json.email, password: '' });
       })
       .catch(err => setError(err.message))
       .finally(() => setFetching(false));
 
-  useEffect(() => {
-    fetchAccount();
-  }, []);
+  useEffect(() => { fetchAccount(); }, []);
 
   const initials = data.username ? data.username.slice(0, 2).toUpperCase() : '..';
 
   const handleAccountChange = useCallback(e => {
     const { name, value } = e.target;
-    setAccountDraft(prev => ({ ...prev, [name]: value }));
+    setAccountDraft(prev => ({ ...prev, [ name ]: value }));
     setDirty(prev => ({ ...prev, account: true }));
   }, []);
 
+  const handleSecurityChange = useCallback(e => {
+    const { name, value } = e.target;
+    setSecurityDraft(prev => ({ ...prev, [ name ]: value }));
+    setDirty(prev => ({ ...prev, security: true }));
+  }, []);
+
   const startEdit = section => {
-    if (section === 'account') setAccountDraft({ username: data.username, email: data.email, password: '' });
-    setEditing(prev => ({ ...prev, [section]: true }));
-    setDirty(prev => ({ ...prev, [section]: false }));
+    if (section === 'account') setAccountDraft({ username: data.username });
+    if (section === 'security') setSecurityDraft({ email: data.email, password: '' });
+    setEditing(prev => ({ ...prev, [ section ]: true }));
+    setDirty(prev => ({ ...prev, [ section ]: false }));
     setError(null);
   };
 
   const cancelEdit = section => {
-    setEditing(prev => ({ ...prev, [section]: false }));
-    setDirty(prev => ({ ...prev, [section]: false }));
+    setEditing(prev => ({ ...prev, [ section ]: false }));
+    setDirty(prev => ({ ...prev, [ section ]: false }));
     setError(null);
   };
 
-  const saveAccount = async () => {
-    setLoading(prev => ({ ...prev, account: true }));
+  const save = async (section) => {
+    setLoading(prev => ({ ...prev, [ section ]: true }));
     setError(null);
 
+    const body = section === 'account'
+      ? { type: 'account', username: accountDraft.username }
+      : {
+        type: 'security',
+        email: securityDraft.email.trim() || null,
+        password: securityDraft.password.trim() || null,
+      };
+
     try {
-      const res = await fetch('/api/admin/account', {
+      const res = await fetch('/api/adminRo/account', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: accountDraft.username.trim() || null,
-          email: accountDraft.email.trim() || null,
-          password: accountDraft.password.trim() || null,
-        }),
+        body: JSON.stringify(body),
       });
 
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? 'Failed to save.');
 
       await fetchAccount();
-      setEditing(prev => ({ ...prev, account: false }));
-      setDirty(prev => ({ ...prev, account: false }));
-      setSaved(prev => ({ ...prev, account: true }));
-      setTimeout(() => setSaved(prev => ({ ...prev, account: false })), 2500);
+      setEditing(prev => ({ ...prev, [ section ]: false }));
+      setDirty(prev => ({ ...prev, [ section ]: false }));
+      if (section === 'security') {
+        toast.success('Changes saved. Check your Gmail for a confirmation link.')
+      } else {
+        toast.success('Username updated successfully.')
+      }
 
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message)
     } finally {
-      setLoading(prev => ({ ...prev, account: false }));
+      setLoading(prev => ({ ...prev, [ section ]: false }));
     }
   };
 
@@ -164,29 +180,46 @@ export default function AdminAccountSettings() {
 
       <div className={styles.adminSectionsGrid}>
 
+        {/* ── Account Details: username ── */}
         <Section
           title="Account Details"
           editing={editing.account}
           onEdit={() => startEdit('account')}
-          onSave={saveAccount}
+          onSave={() => save('account')}
           onCancel={() => cancelEdit('account')}
           saved={saved.account}
           loading={loading.account}
           dirty={dirty.account}
         >
           {editing.account ? (
+            <FieldEdit icon="user" label="Username" name="username"
+              value={accountDraft.username} onChange={handleAccountChange} />
+          ) : (
+            <FieldDisplay icon="user" label="Username" value={data.username} />
+          )}
+        </Section>
+
+        {/* ── Security: email + password ── */}
+        <Section
+          title="Security"
+          editing={editing.security}
+          onEdit={() => startEdit('security')}
+          onSave={() => save('security')}
+          onCancel={() => cancelEdit('security')}
+          saved={saved.security}
+          loading={loading.security}
+          dirty={dirty.security}
+        >
+          {editing.security ? (
             <>
-              <FieldEdit icon="user" label="Username" name="username"
-                value={accountDraft.username} onChange={handleAccountChange} />
               <FieldEdit icon="mail" label="Email" name="email" type="email"
-                value={accountDraft.email} onChange={handleAccountChange} />
+                value={securityDraft.email} onChange={handleSecurityChange} />
               <FieldEdit icon="lock" label="New Password" name="password" type="password"
-                value={accountDraft.password} onChange={handleAccountChange}
+                value={securityDraft.password} onChange={handleSecurityChange}
                 hint="Leave blank to keep current password." />
             </>
           ) : (
             <>
-              <FieldDisplay icon="user" label="Username" value={data.username} />
               <FieldDisplay icon="mail" label="Email" value={data.email} />
               <FieldDisplay icon="lock" label="Password" masked />
             </>
