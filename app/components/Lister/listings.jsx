@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import PropertyCard from '../Properties/PropertyCard';
 import styles from '../css/Lister/MyListing.module.css';
 import AddSlotCard from './AddslotCard';
+import AddListing from './AddListing'; // adjust path if needed
+import { EDIT_WINDOW_DAYS } from '@/lib/constants';
 
 const PAGE_SIZE = 20;
 
@@ -16,6 +18,7 @@ export default function MyListings({ slotData, onSlotAdded }) {
    const [ deletingId, setDeletingId ] = useState(null);
    const [ deleteError, setDeleteError ] = useState(null);
    const [ confirmId, setConfirmId ] = useState(null);
+   const [ editingListing, setEditingListing ] = useState(null);
 
    const fetchListings = useCallback(async (page) => {
       setLoading(true);
@@ -34,6 +37,12 @@ export default function MyListings({ slotData, onSlotAdded }) {
    }, []);
 
    useEffect(() => {
+      fetchListings(currentPage);
+   }, [ currentPage, fetchListings ]);
+
+   // When edit completes or is cancelled, return to listings and refresh
+   const handleEditDone = useCallback(() => {
+      setEditingListing(null);
       fetchListings(currentPage);
    }, [ currentPage, fetchListings ]);
 
@@ -71,7 +80,6 @@ export default function MyListings({ slotData, onSlotAdded }) {
             throw new Error(json.error ?? 'Delete failed.');
          }
 
-         // Refresh listings and bubble slot refresh up to parent
          fetchListings(currentPage);
          if (onSlotAdded) onSlotAdded();
       } catch (err) {
@@ -99,6 +107,26 @@ export default function MyListings({ slotData, onSlotAdded }) {
       pages.push(totalPages);
       return pages;
    };
+
+   function canEdit(created_at) {
+      if (!created_at) return false;
+      const normalized = created_at.endsWith('Z') || created_at.includes('+')
+         ? created_at
+         : created_at.replace(' ', 'T') + 'Z';
+      const diffMs = Date.now() - new Date(normalized).getTime();
+      return diffMs / (1000 * 60 * 60 * 24) <= EDIT_WINDOW_DAYS;
+   }
+
+   // Render edit form instead of listings grid
+   if (editingListing) {
+      return (
+         <AddListing
+            canAdd={true}
+            prefill={editingListing}
+            onDone={handleEditDone}
+         />
+      );
+   }
 
    return (
       <div className={styles.root}>
@@ -199,6 +227,14 @@ export default function MyListings({ slotData, onSlotAdded }) {
                               Delete listing
                            </button>
                         )}
+                        <button
+                           className={styles.editBtn}
+                           onClick={() => setEditingListing(listing)}
+                           disabled={!canEdit(listing.created_at)}
+                           title={!canEdit(listing.created_at) ? 'Edit window has expired' : 'Edit listing'}
+                        >
+                           Edit
+                        </button>
                      </div>
                   </div>
                ))}

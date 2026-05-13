@@ -5,8 +5,8 @@ import styles from "./css/Lister/ListerNav.module.css";
 const TABS = [
   { id: "listings",  label: "Listings" },
   { id: "analytics", label: "Analytics" },
-  { id: "add",       label: "Add A Listing" },
-  { id: "account",   label: "Account Information" },
+  { id: "add",       label: "Add Listing" },
+  { id: "account",   label: "Account Setting" },
 ];
 
 const DefaultPanel = ({ label }) => (
@@ -15,21 +15,23 @@ const DefaultPanel = ({ label }) => (
   </div>
 );
 
-export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
-  const [active, setActive]                 = useState(defaultTab);
+export default function ListerNav({ panels = {}, defaultTab = "listings", activeTab: controlledTab, onTabChange }) {
+  const [active, setActive]             = useState(defaultTab);
   const [indicatorStyle, setIndicatorStyle] = useState({});
-  const [dropdownOpen, setDropdownOpen]     = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const currentActive = controlledTab ?? active;
 
   const tabRefs = useRef({});
   const barRef  = useRef(null);
   const rootRef = useRef(null);
 
-  const activeTab = TABS.find(t => t.id === active);
+  const activeTab = TABS.find(t => t.id === currentActive);
 
   useEffect(() => {
     const updateIndicator = () => {
       const bar   = barRef.current;
-      const tabEl = tabRefs.current[active];
+      const tabEl = tabRefs.current[currentActive];
       if (!bar || !tabEl) return;
       const padding = 16;
       const barRect = bar.getBoundingClientRect();
@@ -42,7 +44,7 @@ export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
     updateIndicator();
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
-  }, [active]);
+  }, [currentActive]);
 
   useEffect(() => {
     if (!dropdownOpen) return;
@@ -56,6 +58,7 @@ export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
 
   const selectTab = (id) => {
     setActive(id);
+    onTabChange?.(id);
     setDropdownOpen(false);
   };
 
@@ -69,7 +72,7 @@ export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
           <button
             key={tab.id}
             ref={el => (tabRefs.current[tab.id] = el)}
-            className={`${styles.tab}${active === tab.id ? ` ${styles.tabActive}` : ""}`}
+            className={`${styles.tab}${currentActive === tab.id ? ` ${styles.tabActive}` : ""}`}
             onClick={(e) => { e.stopPropagation(); selectTab(tab.id); }}
           >
             {tab.label}
@@ -91,7 +94,7 @@ export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
 
       {dropdownOpen && (
         <div className={styles.dropdown}>
-          {TABS.filter(t => t.id !== active).map(tab => (
+          {TABS.filter(t => t.id !== currentActive).map(tab => (
             <button
               key={tab.id}
               className={styles.dropdownItem}
@@ -106,7 +109,7 @@ export default function ListerNav({ panels = {}, defaultTab = "listings" }) {
       <div className={styles.underline} />
 
       <div className={styles.panelWrap}>
-        {panels[active] ?? <DefaultPanel label={activeTab.label} />}
+        {panels[currentActive] ?? <DefaultPanel label={activeTab.label} />}
       </div>
 
     </div>

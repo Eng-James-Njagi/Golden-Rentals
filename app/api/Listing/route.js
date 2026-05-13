@@ -15,24 +15,30 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const page   = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
     const offset = (page - 1) * PAGE_SIZE;
 
     const { data, error, count } = await supabase
       .from('Property_Listing')
       .select(`
-        listing_id,
-        property_name,
-        property_price,
-        property_interior,
-        rent_duration,
-        ward_name,
-        ward_id,
-        phone_number,
-        images_table ( image_url, video_url, position ),
-        property_categories ( category_name ),
-        property_types ( type_name )
-      `, { count: 'exact' })
+    listing_id,
+    property_name,
+    property_price,
+    property_interior,
+    rent_duration,
+    ward_name,
+    ward_id,
+    ward_location,
+    description,
+    property_location,
+    phone_number,
+    created_at,
+    category_id,
+    property_type_id,
+    images_table ( image_url, video_url, position ),
+    property_categories ( category_name ),
+    property_types ( type_name )
+  `, { count: 'exact' })
       .eq('user_id', user.id)
       .order('listing_id', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
@@ -43,23 +49,23 @@ export async function GET(request) {
 
     const shaped = (data ?? []).map(row => ({
       ...row,
-      media:         row.images_table ?? [],
+      media: row.images_table ?? [],
       category_name: row.property_categories?.category_name ?? null,
-      type_name:     row.property_types?.type_name ?? null,
+      type_name: row.property_types?.type_name ?? null,
     }));
 
     const total_records = count ?? 0;
-    const total_pages   = Math.ceil(total_records / PAGE_SIZE);
+    const total_pages = Math.ceil(total_records / PAGE_SIZE);
 
     return NextResponse.json({
       data: shaped,
       pagination: {
-        current_page:  page,
+        current_page: page,
         total_pages,
         total_records,
-        page_size:     PAGE_SIZE,
-        has_next:      page < total_pages,
-        has_prev:      page > 1,
+        page_size: PAGE_SIZE,
+        has_next: page < total_pages,
+        has_prev: page > 1,
       },
     });
 

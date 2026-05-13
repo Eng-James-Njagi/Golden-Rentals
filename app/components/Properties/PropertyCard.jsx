@@ -16,9 +16,12 @@ export default function PropertyCard({ listing, onWardClick }) {
     ward_id,
     type_name,
     category_name,
+    property_location,
     media = [],
     phone_number,
   } = listing;
+
+  
 
   const firstImage = media?.find(m => m.image_url)?.image_url ?? null;
   const furnished = property_interior?.toLowerCase();
@@ -26,7 +29,7 @@ export default function PropertyCard({ listing, onWardClick }) {
   const handleWardClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    onWardClick?.(ward_id, ward_name);
+    onWardClick?.(ward_id, ward_name, property_location);
   };
 
   return (
@@ -103,6 +106,7 @@ export default function PropertyCard({ listing, onWardClick }) {
             )}
           </div>
 
+          {/* 
           <div className={styles.badgeRow}>
             {furnished && (
               <span className={`${styles.badge} ${furnished === 'furnished' ? styles.badgeFurnished : styles.badgeUnfurnished}`}>
@@ -115,6 +119,7 @@ export default function PropertyCard({ listing, onWardClick }) {
               </span>
             )}
           </div>
+         */}
 
           <div className={styles.actions}>
             <Link href={`/properties/${listing_id}`} className={styles.viewBtn}>

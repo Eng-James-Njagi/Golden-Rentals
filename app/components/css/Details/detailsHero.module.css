@@ -1,10 +1,10 @@
 /* ── Hero: two-column layout ── */
 .hero {
    display: grid;
-   grid-template-columns: 60% 1fr;
+   grid-template-columns: 50% 1fr;
    gap: 28px;
    align-items: stretch;
-   width:80%;
+   width:100%;
 }
 
 /* ── Left column: gallery ── */
@@ -120,22 +120,23 @@
 .infoPanel {
    display: flex;
    flex-direction: column;
-   gap: 14px;
+   gap: 12px;
    padding: 4px 10px;
    align-self: stretch;
    background: #f9f9f9;
-   justify-content: space-evenly;
+   justify-content: space-around;
+   width:100%;
 }
 
 .categoryLabel {
-   font-size: 11px;
+   font-size: 12px;
    font-weight: 700;
    letter-spacing: 0.08em;
    color: var(--primary);
    font-family:var(--font-geist-mono);
    display: flex;
    align-items: center;
-   gap: 6px;
+   gap: 4px;
 }
 
 .title {
@@ -145,6 +146,7 @@
    color: #111;
    margin: 0;
    line-height: 1.2;
+   width:100%;
 }
 
 .priceRow {
@@ -177,10 +179,16 @@
    display: inline-flex;
    align-items: center;
    gap: 6px;
-   font-size: 18px;
-   font-weight: 600;
+   font-size: 16px;
+   font-weight: 500;
    color: #222;
    font-family:var(--font-inter);
+}
+.BadgeClass{
+   display:flex;
+   flex-wrap:wrap;
+   gap: 10px;
+
 }
 
 .badge {
@@ -245,6 +253,7 @@
    transform: translateY(0);
 }
 
+
 @media (max-width: 700px) {
    .hero {
       grid-template-columns: 1fr;
@@ -262,6 +271,6 @@
    }
 
    .contactBtn {
-      width: 100%;
+      width: 80%;
    }
 }

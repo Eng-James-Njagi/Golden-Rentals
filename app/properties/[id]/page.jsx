@@ -20,6 +20,24 @@ async function getListing(id) {
   return json.data;
 }
 
+function FilterTags({ listing }) {
+  const tags = [
+    listing.ward_name,
+    listing.category_name,
+    listing.type_name,
+    listing.property_price ? `${Number(listing.property_price).toLocaleString()}` : null,
+    listing.rent_duration,
+    listing.property_interior,
+  ].filter(Boolean);
+
+  return (
+    <div className={styles.filterTags}>
+      {tags.map((tag, i) => (
+        <span key={i} className={styles.filterTag}>{tag}</span>
+      ))}
+    </div>
+  );
+}
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const listing = await getListing(id);
@@ -50,6 +68,8 @@ export default async function PropertyDetailPage({ params }) {
             </svg>
             Back to listings
           </Link>
+
+          <FilterTags listing={listing} />
 
           {/* Hero: gallery + info */}
           <PropertyHero listing={listing} />
