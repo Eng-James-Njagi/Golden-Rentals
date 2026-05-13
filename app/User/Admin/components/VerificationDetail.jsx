@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import styles from '../css/verificationDetail.module.css';
 
 const ACTION_OPTIONS = [ '', 'Suspend Listing', 'Approve Listing', 'Mark as Reported', 'Remove Listing' ];
-const [ activeIndex, setActiveIndex ] = useState(defaultIndex === -1 ? 0 : defaultIndex);
+
 
 function StarRating({ rating = 0 }) {
   return (

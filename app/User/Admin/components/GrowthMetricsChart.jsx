@@ -58,7 +58,7 @@ export default function GrowthMetricsChart() {
    const [ data, setData ] = useState([]);
    const [ week, setWeek ] = useState(WEEK_OPTIONS[ 0 ]);
    const [ month, setMonth ] = useState(MONTH_OPTIONS[ new Date().getMonth() ]);
-   const [ year, setYear ] = useState(YEAR_OPTIONS[ YEAR_OPTIONS.length - 1 ]);
+   const [ year, setYear ] = useState(YEAR_OPTIONS.at(-1) ?? YEAR_OPTIONS[ 0 ] ?? null);
    const [ active, setActive ] = useState('week');
 
    useEffect(() => {
@@ -71,6 +71,8 @@ export default function GrowthMetricsChart() {
             visits: Number(r.visits),
          }))));
    }, [ active, week, month, year ]);
+
+   if (!week || !month || !year) return null;
 
    return (
       <section className={styles.section}>
