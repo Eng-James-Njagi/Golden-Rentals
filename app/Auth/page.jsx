@@ -79,26 +79,41 @@ const icons = {
 };
 
 /* ── Single field — controlled ── */
-const Field = ({ icon, placeholder, type = "text", hint, fullWidth = false, value, onChange, name, error }) => (
-  <div className={`field-wrap${fullWidth ? " field-full" : ""}${error ? " field-error" : ""}`}>
-    <div className="input-row">
-      <Icon d={icons[ icon ]} />
-      <input
-        type={type}
-        placeholder={placeholder}
-        autoComplete="off"
-        name={name}
-        value={value}
-        onChange={onChange}
-        aria-invalid={!!error}
-        aria-describedby={error ? `${name}-error` : undefined}
-      />
-    </div>
-    {error && <span className="field-hint error-msg" id={`${name}-error`} role="alert">{error}</span>}
-    {!error && hint && <span className="field-hint">{hint}</span>}
-  </div>
-);
+const Field = ({ icon, placeholder, type = "text", hint, fullWidth = false, value, onChange, name, error }) => {
+  const [ showPassword, setShowPassword ] = useState(false);
+  const isPassword = type === "password";
+  const inputType = isPassword ? (showPassword ? "text" : "password") : type;
 
+  return (
+    <div className={`field-wrap${fullWidth ? " field-full" : ""}${error ? " field-error" : ""}`}>
+      <div className="input-row">
+        <Icon d={icons[ icon ]} />
+        <input
+          type={inputType}
+          placeholder={placeholder}
+          autoComplete="off"
+          name={name}
+          value={value}
+          onChange={onChange}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${name}-error` : undefined}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(v => !v)}
+            className="eye-btn"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            <EyeIcon open={showPassword} />
+          </button>
+        )}
+      </div>
+      {error && <span className="field-hint error-msg" id={`${name}-error`} role="alert">{error}</span>}
+      {!error && hint && <span className="field-hint">{hint}</span>}
+    </div>
+  );
+};
 /* ── Sign Up: 2-column grid ── */
 const SignUpFields = ({ values, onChange, errors }) => (
   <div className="fields-grid">
@@ -126,6 +141,26 @@ const LogInFields = ({ values, onChange, errors }) => (
     <Field icon="user" name="username" placeholder="Username" value={values.username} onChange={onChange} error={errors.username} />
     <Field icon="lock" name="password" placeholder="Password" value={values.password} onChange={onChange} type="password" error={errors.password} />
   </div>
+);
+const EyeIcon = ({ open }) => (
+  <svg
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+    width="18" height="18" aria-hidden="true"
+  >
+    {open ? (
+      <>
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ) : (
+      <>
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+        <line x1="1" y1="1" x2="23" y2="23" />
+      </>
+    )}
+  </svg>
 );
 
 /* ── Field state shapes ── */
