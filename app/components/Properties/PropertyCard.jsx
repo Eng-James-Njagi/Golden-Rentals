@@ -128,7 +128,7 @@ export default function PropertyCard({ listing, onWardClick }) {
 
             {phone_number && (
               <a
-                href={`tel:${phone_number}`}
+                href={`tel:0${phone_number}`}
                 className={styles.callBtn}
                 aria-label="Call agent"
               >
