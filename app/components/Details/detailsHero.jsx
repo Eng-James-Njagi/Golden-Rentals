@@ -193,7 +193,7 @@ export default function PropertyHero({ listing }) {
               e.preventDefault(); 
               fetch(`/api/listings/${listing_id}/calls`, { method: 'POST' })
                 .finally(() => {
-                  window.location.href = `tel:${phone_number}`; 
+                  window.location.href = `tel:0${phone_number}`; 
                 });
             }}
           >
