@@ -156,10 +156,11 @@
 }
 
 .field-error .input-row {
-  border-color: #e53e3e;
+   border-color: #e53e3e;
 }
+
 .error-msg {
-  color: #e53e3e;
+   color: #e53e3e;
 }
 
 @keyframes formIn {
@@ -261,6 +262,21 @@
    font-family: var(--font-geist-mono);
 }
 
+.eye-btn {
+   background: none;
+   border: none;
+   cursor: pointer;
+   padding: 0 4px;
+   display: flex;
+   align-items: center;
+   color: var(--color-muted, #888);
+   flex-shrink: 0;
+}
+
+.eye-btn:hover {
+   color: var(--color-text, #333);
+}
+
 /* ── SUBMIT — centered, not full-width ── */
 .submit-wrap {
    display: flex;
@@ -345,6 +361,7 @@
       width: 100%;
       margin: 0 auto;
    }
+
    .panel-content {
       width: 95%;
       margin: 0 auto;
