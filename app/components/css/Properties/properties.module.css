@@ -37,6 +37,10 @@
   gap: 18px;
 }
 
+.wardModalBody {
+  height: 400px;
+}
+
 @media (max-width: 1400px) {
   .grid {
     grid-template-columns: repeat(4, 1fr);

@@ -33,14 +33,10 @@ const icons = {
   link: 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71',
 };
 
-/* ─── Static options (not from API) ─── */
 const DURATIONS = [ 'Short Term', 'Long Term' ];
 const FURNITURE = [ 'Furnished', 'Unfurnished' ];
-
-/* ─── Required fields for validation ─── */
 const REQUIRED = [ 'name', 'ward', 'ward_location', 'property_location', 'category', 'type', 'duration', 'furniture', 'phone', 'price', 'description' ];
 
-/* ─── Initial form state ─── */
 const EMPTY = {
   name: '',
   ward: '',
@@ -56,8 +52,6 @@ const EMPTY = {
   images: [ null, null, null ],
   video: null,
 };
-
-/* ─── Sub-components ─── */
 
 const FieldInput = ({ icon, label, name, type = 'text', value, onChange, hint, errors, placeholder, disabled }) => (
   <div className={styles.fieldRow}>
@@ -115,7 +109,6 @@ const FieldTextarea = ({ icon, label, name, value, onChange, errors, hint, disab
   </div>
 );
 
-/* ─── Section wrapper ─── */
 const Section = ({ title, children }) => (
   <div className={styles.section}>
     <div className={styles.sectionHeader}>
@@ -125,18 +118,12 @@ const Section = ({ title, children }) => (
   </div>
 );
 
-/* ─── Image upload slot ─── */
 const ImageSlot = ({ file, onChange, label, disabled }) => {
   const preview = file ? URL.createObjectURL(file) : null;
   return (
     <label className={`${styles.uploadSlot} ${disabled ? styles.uploadSlotDisabled : ''}`}>
       {preview
-        ? <Image
-          src={preview}
-          width={20}
-          height={30}
-          alt="preview"
-          className={styles.uploadSlotPreview} />
+        ? <Image src={preview} width={20} height={30} alt="preview" className={styles.uploadSlotPreview} />
         : <>
           <Icon d={icons.image} className={styles.uploadIcon} />
           <span>{label}</span>
@@ -147,7 +134,6 @@ const ImageSlot = ({ file, onChange, label, disabled }) => {
   );
 };
 
-/* ─── Discard confirmation popup ─── */
 const DiscardPopup = ({ onContinue, onDiscard }) => (
   <div className={styles.overlay}>
     <div className={styles.popup}>
@@ -163,7 +149,6 @@ const DiscardPopup = ({ onContinue, onDiscard }) => (
   </div>
 );
 
-/* ── Extract clean URL from raw input or full iframe tag ── */
 const extractGoogleMapsUrl = (input) => {
   if (!input) return '';
   const trimmed = input.trim();
@@ -171,13 +156,11 @@ const extractGoogleMapsUrl = (input) => {
   if (srcMatch) return srcMatch[ 1 ];
   return trimmed.replace(/^["']|["']$/g, '');
 };
-/* ═══════════════════════════════════════════════
-   Main component
-══════════════════════════════════════════════ */
-export default function AddListing({ canAdd = true }) {
-  const router = useRouter();
 
-  /* ── Filters from API ── */
+export default function AddListing({ canAdd = true, prefill = null, onDone = null }) {
+  const router = useRouter();
+  const isEdit = !!prefill;
+
   const [ filters, setFilters ] = useState({ wards: [], categories: [] });
   const [ filtersLoading, setFiltersLoading ] = useState(true);
   const [ filtersError, setFiltersError ] = useState(null);
@@ -200,28 +183,31 @@ export default function AddListing({ canAdd = true }) {
   const [ submitting, setSubmitting ] = useState(false);
   const [ serverError, setServerError ] = useState(null);
 
-  /* ── Derived select options ── */
-  const wardOptions = filters.wards.map(w => ({
-    value: w.ward_name,
-    label: w.ward_name,
-  }));
+  useEffect(() => {
+    if (!prefill || filtersLoading) return;
+    setForm({
+      name: prefill.property_name ?? '',
+      ward: prefill.ward_name ?? '',
+      ward_location: prefill.ward_location ?? '',
+      property_location: prefill.property_location ?? '',
+      category: prefill.category_id ?? '',
+      type: prefill.property_type_id ?? '',
+      duration: prefill.rent_duration ?? '',
+      furniture: prefill.property_interior ?? '',
+      phone: String(prefill.phone_number ?? ''),
+      price: prefill.property_price ?? '',
+      description: prefill.description ?? '',
+      images: [ null, null, null ],
+      video: null,
+    });
+    setIsDirty(false);
+  }, [ prefill, filtersLoading ]);
 
-  const categoryOptions = filters.categories.map(c => ({
-    value: c.category_id,
-    label: c.category_name,
-  }));
+  const wardOptions = filters.wards.map(w => ({ value: w.ward_name, label: w.ward_name }));
+  const categoryOptions = filters.categories.map(c => ({ value: c.category_id, label: c.category_name }));
+  const selectedCategory = filters.categories.find(c => String(c.category_id) === String(form.category));
+  const typeOptions = (selectedCategory?.types ?? []).map(t => ({ value: t.type_id, label: t.type_name }));
 
-  const selectedCategory = filters.categories.find(
-    c => String(c.category_id) === String(form.category)
-  );
-  const typeOptions = (selectedCategory?.types ?? []).map(t => ({
-    value: t.type_id,
-    label: t.type_name,
-  }));
-
-
-
-  /* ── Generic field change ── */
   const handleChange = useCallback(e => {
     const { name, value } = e.target;
     const normalized = name === 'property_location' ? extractGoogleMapsUrl(value) : value;
@@ -230,7 +216,6 @@ export default function AddListing({ canAdd = true }) {
     setErrors(prev => ({ ...prev, [ name ]: undefined }));
   }, []);
 
-  /* ── Category change ── */
   const handleCategoryChange = useCallback(e => {
     const { value } = e.target;
     setForm(prev => ({ ...prev, category: value, type: '' }));
@@ -238,7 +223,6 @@ export default function AddListing({ canAdd = true }) {
     setErrors(prev => ({ ...prev, category: undefined, type: undefined }));
   }, []);
 
-  /* ── Image slot change ── */
   const handleImage = useCallback((index, e) => {
     const file = e.target.files?.[ 0 ] ?? null;
     setForm(prev => {
@@ -250,14 +234,12 @@ export default function AddListing({ canAdd = true }) {
     setErrors(prev => ({ ...prev, [ `image_${index}` ]: undefined }));
   }, []);
 
-  /* ── Video change ── */
   const handleVideo = useCallback(e => {
     const file = e.target.files?.[ 0 ] ?? null;
     setForm(prev => ({ ...prev, video: file }));
     setIsDirty(true);
   }, []);
 
-  /* ── Discard flow ── */
   const triggerDiscard = () => setShowPopup(true);
 
   const confirmDiscard = () => {
@@ -265,50 +247,47 @@ export default function AddListing({ canAdd = true }) {
     setErrors({});
     setIsDirty(false);
     setShowPopup(false);
-    toast.success('Data Discarded');
     setServerError(null);
+    toast.success('Data Discarded');
+    if (isEdit && onDone) onDone();
   };
 
   const dismissPopup = () => setShowPopup(false);
 
-  /* ── Back ── */
   const handleBack = () => {
     if (isDirty) {
       setShowPopup(true);
+    } else if (isEdit && onDone) {
+      onDone();
     } else {
       router.back();
     }
   };
 
-  /* ── Validation — single source of truth for all fields and media ── */
   const validate = () => {
     const errs = {};
     const MAX_BYTES = 2 * 1024 * 1024;
 
-    // Required text fields
     REQUIRED.forEach(field => {
       if (!form[ field ] || String(form[ field ]).trim() === '') {
         errs[ field ] = 'Required';
       }
     });
 
-    // Phone format
     if (form.phone && !/^\d{6,15}$/.test(form.phone.replace(/\s/g, ''))) {
       errs.phone = 'Enter a valid phone number';
     }
 
-    // Price must be numeric
     if (form.price && isNaN(Number(form.price))) {
       errs.price = 'Must be a number';
     }
 
-    // Google Maps URL
     if (form.property_location && !form.property_location.includes('google.com/maps')) {
       errs.property_location = 'Must be a Google Maps embed URL';
     }
 
-    // All three image slots required, each must be a valid File
     form.images.forEach((file, i) => {
+      if (isEdit && file === null) return;
       if (!(file instanceof File) || file.size === 0) {
         errs[ `image_${i}` ] = `Image ${i + 1} is required`;
       } else if (file.size > MAX_BYTES) {
@@ -316,7 +295,6 @@ export default function AddListing({ canAdd = true }) {
       }
     });
 
-    // Video size (optional — only validate if present)
     if (form.video instanceof File && form.video.size > MAX_BYTES) {
       errs.video = 'Video exceeds 2 MB';
     }
@@ -324,9 +302,8 @@ export default function AddListing({ canAdd = true }) {
     return errs;
   };
 
-  /* ── Submit ── */
   const handleSubmit = async () => {
-    if (!canAdd) return;
+    if (!canAdd && !isEdit) return;
 
     const errs = validate();
     if (Object.keys(errs).length > 0) {
@@ -339,31 +316,39 @@ export default function AddListing({ canAdd = true }) {
 
     try {
       const fd = new FormData();
-      fd.append('name', form.name);
-      fd.append('ward', form.ward);
+      fd.append('property_name', form.name);
+      fd.append('ward_name', form.ward);
       fd.append('ward_location', form.ward_location);
       fd.append('property_location', form.property_location);
       fd.append('category_id', form.category);
-      fd.append('type_id', form.type);
-      fd.append('duration', form.duration);
-      fd.append('furniture', form.furniture);
-      fd.append('phone', form.phone);
-      fd.append('price', form.price);
+      fd.append('property_type_id', form.type);
+      fd.append('rent_duration', form.duration);
+      fd.append('property_interior', form.furniture);
+      fd.append('phone_number', form.phone);
+      fd.append('property_price', form.price);
       fd.append('description', form.description);
 
-      form.images.forEach((file, i) => {
-        if (file) fd.append(`image_${i}`, file);
+      form.images.forEach((file) => {
+        if (file) fd.append('images', file);
       });
       if (form.video) fd.append('video', form.video);
 
-      const res = await fetch('/api/AddListing', { method: 'POST', body: fd });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? 'Failed to post listing.');
+      const url = isEdit ? `/api/listings/${prefill.listing_id}` : '/api/AddListing';
+      const method = isEdit ? 'PATCH' : 'POST';
 
-      setForm(EMPTY);
-      setIsDirty(false);
-      toast.success('Property posted successfully!');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const res = await fetch(url, { method, body: fd });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? (isEdit ? 'Failed to update listing.' : 'Failed to post listing.'));
+
+      toast.success(isEdit ? 'Listing updated!' : 'Property posted successfully!');
+
+      if (isEdit && onDone) {
+        onDone();
+      } else {
+        setForm(EMPTY);
+        setIsDirty(false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
 
     } catch (err) {
       setServerError(err.message);
@@ -372,18 +357,15 @@ export default function AddListing({ canAdd = true }) {
     }
   };
 
-  /* ─── Render ─── */
   return (
     <div className={styles.root}>
 
-      {/* Top bar — always visible */}
       <div className={styles.topBar}>
-        <h1 className={styles.pageTitle}>Post a property</h1>
-
-        {isDirty && (
+        <h1 className={styles.pageTitle}>{isEdit ? 'Edit Listing' : 'Post a property'}</h1>
+        {(isDirty || isEdit) && (
           <div className={styles.topActions}>
             <button className={styles.backBtn} onClick={handleBack}>Back</button>
-            <button className={styles.discardBtn} onClick={triggerDiscard}>Discard</button>
+            {isDirty && <button className={styles.discardBtn} onClick={triggerDiscard}>Discard</button>}
           </div>
         )}
       </div>
@@ -391,8 +373,7 @@ export default function AddListing({ canAdd = true }) {
       {serverError && <p className={styles.errorBanner}>{serverError}</p>}
       {filtersError && <p className={styles.errorBanner}>Could not load options: {filtersError}</p>}
 
-      {/* ── No-slots banner ── */}
-      {!canAdd && (
+      {!canAdd && !isEdit && (
         <div className={styles.noSlotsBanner}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -404,66 +385,63 @@ export default function AddListing({ canAdd = true }) {
         </div>
       )}
 
-      {/* ── Greyed form area ── */}
-      <div className={!canAdd ? styles.formDisabled : undefined}>
+      <div className={(!canAdd && !isEdit) ? styles.formDisabled : undefined}>
 
         <div className={styles.sectionsGrid}>
 
-          {/* ── Left column: Details ── */}
           <Section title="Details">
             <FieldInput
               icon="tag" label="Name" name="name"
               value={form.name} onChange={handleChange} errors={errors}
               placeholder="e.g. Westlands 2BR Apartment"
-              disabled={!canAdd}
+              disabled={!canAdd && !isEdit}
             />
             <FieldSelect
               icon="map" label="Ward" name="ward"
               options={wardOptions} value={form.ward}
               onChange={handleChange} errors={errors}
-              disabled={filtersLoading || !canAdd}
+              disabled={filtersLoading || (!canAdd && !isEdit)}
             />
             <FieldInput
               icon="map" label="Ward Location" name="ward_location"
               value={form.ward_location} onChange={handleChange} errors={errors}
               placeholder="e.g. Opposite Total Petrol Station"
               hint="Specific street or landmark within the ward"
-              disabled={!canAdd}
+              disabled={!canAdd && !isEdit}
             />
             <FieldInput
               icon="link" label="Google Maps URL" name="property_location"
               value={form.property_location} onChange={handleChange} errors={errors}
               placeholder="https://www.google.com/maps/embed?pb=..."
               hint="Paste the embed URL from Google Maps → Share → Embed a map"
-              disabled={!canAdd}
+              disabled={!canAdd && !isEdit}
             />
             <FieldSelect
               icon="grid" label="Category" name="category"
               options={categoryOptions} value={form.category}
               onChange={handleCategoryChange} errors={errors}
-              disabled={filtersLoading || !canAdd}
+              disabled={filtersLoading || (!canAdd && !isEdit)}
             />
             <FieldSelect
               icon="layers" label="Type" name="type"
               options={typeOptions} value={form.type}
               onChange={handleChange} errors={errors}
-              disabled={!form.category || filtersLoading || !canAdd}
+              disabled={!form.category || filtersLoading || (!canAdd && !isEdit)}
             />
             <FieldSelect
               icon="clock" label="Duration" name="duration"
               options={DURATIONS} value={form.duration}
               onChange={handleChange} errors={errors}
-              disabled={!canAdd}
+              disabled={!canAdd && !isEdit}
             />
             <FieldSelect
               icon="sofa" label="Furniture" name="furniture"
               options={FURNITURE} value={form.furniture}
               onChange={handleChange} errors={errors}
-              disabled={!canAdd}
+              disabled={!canAdd && !isEdit}
             />
           </Section>
 
-          {/* ── Right column: Contact, Media ── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
             <Section title="Contact & pricing">
@@ -476,25 +454,24 @@ export default function AddListing({ canAdd = true }) {
                       value="+254" readOnly
                       className={`${styles.fieldInput} ${styles.phonePrefix}`}
                       aria-label="Country code"
-                      disabled={!canAdd}
+                      disabled={!canAdd && !isEdit}
                     />
                     <input
                       id="phone" name="phone" type="tel" value={form.phone}
                       onChange={handleChange} placeholder="7XX XXX XXX"
-                      disabled={!canAdd}
+                      disabled={!canAdd && !isEdit}
                       className={`${styles.fieldInput} ${errors.phone ? styles.error : ''}`}
                     />
                   </div>
                   {errors.phone && <span className={styles.fieldError}>{errors.phone}</span>}
                 </div>
               </div>
-
               <FieldInput
                 icon="dollar" label="Price (KES)" name="price" type="number"
                 value={form.price} onChange={handleChange} errors={errors}
                 placeholder="e.g. 45000"
                 hint="Monthly rent or sale price"
-                disabled={!canAdd}
+                disabled={!canAdd && !isEdit}
               />
             </Section>
 
@@ -502,7 +479,9 @@ export default function AddListing({ canAdd = true }) {
               <div className={styles.fieldRow}>
                 <Icon d={icons.image} />
                 <div className={styles.fieldBody}>
-                  <span className={styles.fieldLabel}>Images (3 required)</span>
+                  <span className={styles.fieldLabel}>
+                    {isEdit ? 'Images (upload to replace)' : 'Images (3 required)'}
+                  </span>
                   <div className={styles.imageGroup}>
                     {form.images.map((file, i) => (
                       <div key={i}>
@@ -510,7 +489,7 @@ export default function AddListing({ canAdd = true }) {
                           file={file}
                           label={`Img ${i + 1}`}
                           onChange={e => handleImage(i, e)}
-                          disabled={!canAdd}
+                          disabled={!canAdd && !isEdit}
                         />
                         {errors[ `image_${i}` ] && (
                           <span className={styles.fieldError}>{errors[ `image_${i}` ]}</span>
@@ -526,15 +505,13 @@ export default function AddListing({ canAdd = true }) {
                 <div className={styles.fieldBody}>
                   <span className={styles.fieldLabel}>Video (optional)</span>
                   <div className={styles.imageGroup}>
-                    <label className={`${styles.uploadSlot} ${!canAdd ? styles.uploadSlotDisabled : ''}`}>
+                    <label className={`${styles.uploadSlot} ${(!canAdd && !isEdit) ? styles.uploadSlotDisabled : ''}`}>
                       <Icon d={icons.video} className={styles.uploadIcon} />
                       <span>{form.video ? form.video.name.slice(0, 10) + '…' : 'Upload'}</span>
-                      <input type="file" accept="video/*" onChange={handleVideo} disabled={!canAdd} />
+                      <input type="file" accept="video/*" onChange={handleVideo} disabled={!canAdd && !isEdit} />
                     </label>
                   </div>
-                  {errors.video && (
-                    <span className={styles.fieldError}>{errors.video}</span>
-                  )}
+                  {errors.video && <span className={styles.fieldError}>{errors.video}</span>}
                 </div>
               </div>
             </Section>
@@ -542,32 +519,31 @@ export default function AddListing({ canAdd = true }) {
           </div>
         </div>
 
-        {/* Description — full width */}
         <Section title="Description">
           <FieldTextarea
             icon="align" label="Description" name="description"
             value={form.description} onChange={handleChange} errors={errors}
             hint="Highlight key features, nearby amenities, access etc."
-            disabled={!canAdd}
+            disabled={!canAdd && !isEdit}
           />
         </Section>
 
-        {/* Submit */}
         <div className={styles.section} style={{ marginTop: 8 }}>
           <div className={styles.submitRow}>
             <button
               className={styles.submitBtn}
               onClick={handleSubmit}
-              disabled={submitting || !canAdd}
+              disabled={submitting || (!canAdd && !isEdit)}
             >
-              {submitting ? 'Posting…' : 'POST PROPERTY'}
+              {submitting
+                ? (isEdit ? 'Saving…' : 'Posting…')
+                : (isEdit ? 'SAVE CHANGES' : 'POST PROPERTY')}
             </button>
           </div>
         </div>
 
-      </div>{/* end formDisabled wrapper */}
+      </div>
 
-      {/* Discard confirmation popup */}
       {showPopup && (
         <DiscardPopup
           onContinue={dismissPopup}

@@ -164,7 +164,7 @@
   font-family: var(--font-inter);
   font-size: 0.8rem;
   font-weight: 500;
-  color: #555;
+  color: var(--primary);
   cursor: pointer;
   transition: color 0.15s ease;
   text-decoration: underline;
@@ -173,7 +173,9 @@
 }
 
 .wardBtn:hover {
-  color: var(--primary);
+  color: var(--darkSecondary);
+  text-decoration:underline;
+  transition:all 0.2s ease-in-out;
 }
 
 .metaItem {
@@ -230,15 +232,15 @@
   flex-shrink: 0;
   border: 1.5px solid #e0e0e8;
   border-radius: 2px;
-  color: #555;
+  background: #2ecc5f;
+  color:black;
   text-decoration: none;
   transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .callBtn:hover {
-  border-color: var(--primary);
+  border-color: var(--darkSecondary);
   color: var(--primary);
-  background: #f0f3ff;
 }
 
 /* ── Responsive ─────────────────────── */

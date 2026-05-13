@@ -139,7 +139,9 @@ export default function PropertiesClient() {
               <PropertyCard
                 key={listing.listing_id}
                 listing={listing}
-                onWardClick={(ward_id, ward_name) => setWardPopup({ ward_id, ward_name })}
+                onWardClick={(ward_id, ward_name, property_location) =>
+                  setWardPopup({ ward_id, ward_name, property_location })
+                }
               />
             ))}
           </div>
@@ -184,7 +186,20 @@ export default function PropertiesClient() {
               <button onClick={() => setWardPopup(null)}>&#x2715;</button>
             </div>
             <div className={styles.wardModalBody}>
-              Map embed for {wardPopup.ward_name} goes here
+              {wardPopup.property_location ? (
+                <iframe
+                  src={wardPopup.property_location}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 'none', display: 'block' }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`Map of ${wardPopup.ward_name}`}
+                />
+              ) : (
+                <p style={{ padding: '1rem' }}>No map available for this ward.</p>
+              )}
             </div>
           </div>
         </div>

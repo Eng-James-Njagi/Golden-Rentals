@@ -26,6 +26,22 @@
    color: var(--secondary);
    transition: all 0.4s ease;
 }
+.filterTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding:8px 0;
+}
+
+.filterTag {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--darkSecondary);
+  color: #444;
+  font-family: var(--font-inter);
+}
 
 @media (max-width: 780px) {
    .container {

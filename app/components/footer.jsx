@@ -1,5 +1,6 @@
 import React from "react";
 import Link from 'next/link'
+import Image from 'next/image'
 import "./css/Navigation/footer.css";
 
 const HomeIcon = () => (
@@ -55,8 +56,14 @@ export default function Footer() {
 
         {/* Col 1 — Brand */}
         <div className="footer-brand">
-          <HomeIcon />
-          <p className="footer-brand-name">Golden Rental<br />Systems</p>
+          <span>
+            <Image
+              width={34}
+              height={34}
+              alt="Logo"
+              src='/logo2.png' />
+          </span>
+          <p className="footer-brand-name">City Rental<br />Systems</p>
           <p className="footer-tagline">Structured Listings.</p>
           <p className="footer-tagline">Predictable Returns</p>
           <div className="footer-socials">
@@ -80,7 +87,7 @@ export default function Footer() {
               </a>
               <a href="mailto:goldenrentalsystems@gmail.com" className="footer-contact-item">
                 <MailIcon />
-                <span>goldenrentalsystems@gmail.com</span>
+                <span>cityrentalsystems@gmail.com</span>
               </a>
             </div>
           </div>
@@ -107,7 +114,7 @@ export default function Footer() {
           </h4>
           <ul className="footer-link-list">
             <li><Link href="/" className="footer-link">Home</Link></li>
-            <li><Link  href="/properties" className="footer-link">Properties</Link></li>
+            <li><Link href="/properties" className="footer-link">Properties</Link></li>
             <li><Link href="/about" className="footer-link">About</Link></li>
           </ul>
         </div>
@@ -117,7 +124,7 @@ export default function Footer() {
       {/* Divider + Copyright */}
       <div className="footer-bottom">
         <div className="footer-divider" />
-        <p className="footer-copy">©2026</p>
+        <p className="footer-copy">CityRentals©2026</p>
       </div>
     </footer>
   );

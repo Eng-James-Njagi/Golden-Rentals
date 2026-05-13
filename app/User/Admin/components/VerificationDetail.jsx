@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import styles from '../css/verificationDetail.module.css';
 
 const ACTION_OPTIONS = [ '', 'Suspend Listing', 'Approve Listing', 'Mark as Reported', 'Remove Listing' ];
+const [ activeIndex, setActiveIndex ] = useState(defaultIndex === -1 ? 0 : defaultIndex);
 
 function StarRating({ rating = 0 }) {
   return (
@@ -41,9 +42,12 @@ function FilterTags({ listing }) {
 }
 
 function Gallery({ media = [], propertyName }) {
-  const [ activeIndex, setActiveIndex ] = useState(0);
   const items = media.filter(m => m.image_url || m.video_url)
     .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+
+  const defaultIndex = items.findIndex(m => m.video_url);
+  const [ activeIndex, setActiveIndex ] = useState(defaultIndex === -1 ? 0 : defaultIndex);
+
   const active = items[ activeIndex ] ?? null;
 
   return (

@@ -1,42 +1,43 @@
 /* ── Header ── */
 .header {
   display: flex;
-  align-items: center; 
+  align-items: center;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
 /* Wraps the counts to the right of the title */
 .headerMeta {
-   display: flex;
-   align-items: center;
-   gap: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
- 
+
 /* Separator dot between counts */
 .metaDivider {
-   font-size: 0.8rem;
-   color: var(--color-muted, #bbb);
-   font-family: var(--font-geist-mono);
-   user-select: none;
+  font-size: 0.8rem;
+  color: var(--color-muted, #bbb);
+  font-family: var(--font-geist-mono);
+  user-select: none;
 }
- 
+
 /* Slot count turns amber when can_add is false */
 .countWarning {
-   color: #b45309;
+  color: #b45309;
 }
+
 .title {
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--color-text, #111);
-  font-family:var(--font-geist-sans);
+  font-family: var(--font-geist-sans);
   margin: 0;
 }
 
 .count {
   font-size: 0.8rem;
   color: var(--color-muted, #888);
-  font-family:var(--font-geist-mono);
+  font-family: var(--font-geist-mono);
 }
 
 /* ── Grid — mirrors PropertyCard grid ── */
@@ -57,7 +58,7 @@
 
 /* Forces the PropertyCard inside to lose its own border-radius/shadow
    since the wrapper now owns those */
-.cardWrapper > article {
+.cardWrapper>article {
   border-radius: 0;
   box-shadow: none;
   flex: 1;
@@ -71,6 +72,7 @@
   min-height: 42px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 
 .deleteBtn {
@@ -86,7 +88,7 @@
   border-radius: 6px;
   transition: background 0.15s ease;
   font-weight: 500;
-  font-family:var(--font-geist-sans)
+  font-family: var(--font-geist-sans)
 }
 
 .deleteBtn:hover:not(:disabled) {
@@ -95,6 +97,32 @@
 
 .deleteBtn:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.editBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+  font-weight: 500;
+  font-family: var(--font-geist-sans);
+  margin-left: auto;
+}
+
+.editBtn:hover:not(:disabled) {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.editBtn:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
@@ -110,7 +138,7 @@
 .confirmText {
   font-size: 0.75rem;
   color: var(--color-text, #111);
-  font-family:var(--font-inter);
+  font-family: var(--font-inter);
   font-weight: 500;
   flex: 1;
 }
@@ -120,7 +148,7 @@
   font-weight: 600;
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
-  
+
   border: none;
   cursor: pointer;
   background: var(--color-danger, #c0392b);
@@ -159,8 +187,13 @@
 }
 
 @keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ── Empty / Error states ── */

@@ -25,8 +25,11 @@ export default function PropertyHero({ listing }) {
     ward_location,
     listing_id,
     phone_number,
+    property_location,
     media = [],
   } = listing;
+
+  
 
   // Build ordered media items — each has either image_url or video_url (or both; image used as video poster)
   const mediaItems = (media ?? [])
@@ -168,7 +171,8 @@ export default function PropertyHero({ listing }) {
           )}
         </div>
 
-        {furnished && (
+       <div className={styles.BadgeClass}>
+         {furnished && (
           <span className={`${styles.badge} ${furnished === 'furnished' ? styles.badgeFurnished : styles.badgeUnfurnished}`}>
             {property_interior}
           </span>
@@ -179,6 +183,7 @@ export default function PropertyHero({ listing }) {
             {rent_duration === 'short-term' ? ' Short Term' : ' Long Term'}
           </span>
         )}
+       </div>
 
         {phone_number && (
 
