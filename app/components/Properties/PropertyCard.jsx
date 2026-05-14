@@ -21,7 +21,7 @@ export default function PropertyCard({ listing, onWardClick }) {
     phone_number,
   } = listing;
 
-  
+
 
   const firstImage = media?.find(m => m.image_url)?.image_url ?? null;
   const furnished = property_interior?.toLowerCase();
@@ -131,6 +131,13 @@ export default function PropertyCard({ listing, onWardClick }) {
                 href={`tel:0${phone_number}`}
                 className={styles.callBtn}
                 aria-label="Call agent"
+                onClick={(e) => {
+                  e.preventDefault();
+                  fetch(`/api/listings/${listing_id}/calls`, { method: 'POST' })
+                    .finally(() => {
+                      window.location.href = `tel:0${phone_number}`;
+                    });
+                }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M6.6 10.8a15.4 15.4 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C9.61 21 3 14.39 3 6.5a1 1 0 0 1 1-1H7.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.24 1.02L6.6 10.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />

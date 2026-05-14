@@ -97,12 +97,12 @@ export default function Footer() {
               <span className="footer-heading-underline">Property</span> Type
             </h4>
             <ul className="footer-link-list">
-              <li><a href="#" className="footer-link">Rentals Apartments</a></li>
-              <li><a href="#" className="footer-link">Airbnbs</a></li>
-              <li><a href="#" className="footer-link">Commercial Spaces</a></li>
-              <li><a href="#" className="footer-link">Lodgings</a></li>
-              <li><a href="#" className="footer-link">Private Houses and Homes</a></li>
-              <li><a href="#" className="footer-link">Hostels</a></li>
+              <li><Link href="/properties?category_id=1" className="footer-link">Rental Apartments</Link></li>
+              <li><Link href="/properties?category_id=2" className="footer-link">Airbnbs</Link></li>
+              <li><Link href="/properties?category_id=3" className="footer-link">Commercial Spaces</Link></li>
+              <li><Link href="/properties?category_id=4" className="footer-link">Lodgings</Link></li>
+              <li><Link href="/properties?category_id=5" className="footer-link">Private Houses and Homes</Link></li>
+              <li><Link href="/properties?category_id=2" className="footer-link">Hostels</Link></li>
             </ul>
           </div>
         </div>
