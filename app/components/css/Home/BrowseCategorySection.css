@@ -67,7 +67,7 @@
   height: 100%;
   background: var(--darkSecondary, #DEA806);
   border-radius: 2px;
-  min-width:8%;
+  min-width: 8%;
   transition: width 0.35s ease;
 }
 
