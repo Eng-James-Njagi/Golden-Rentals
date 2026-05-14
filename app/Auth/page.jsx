@@ -296,6 +296,12 @@ export default function AuthForm() {
             : <LogInFields values={loginFields} onChange={handleLoginChange} errors={fieldErrors} />
           }
 
+          {!isSignup && (
+            <div className="forgot-wrap">
+              <a href="/forgot-password" className="forgot-link">Forgot password?</a>
+            </div>
+          )}
+
           {error && <p className="form-error">{error}</p>}
 
           <div className="submit-wrap">

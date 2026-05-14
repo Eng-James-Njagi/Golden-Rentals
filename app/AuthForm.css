@@ -310,6 +310,94 @@
    transform: translateY(0);
 }
 
+.forgot-wrap {
+   text-align: right;
+   margin-top: 8px;
+   margin-bottom: 4px;
+}
+
+.forgot-link {
+   font-size: 0.8rem;
+   color: var(--accent, #6366f1);
+   text-decoration: none;
+}
+
+.forgot-link:hover {
+   text-decoration: underline;
+}
+
+/* ── FORGOT / RESET PASSWORD ── */
+.reset-info {
+  font-size: 12.5px;
+  font-weight: 300;
+  font-family: var(--font-inter);
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 18px;
+}
+
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.success-state svg {
+  color: #22c55e;
+}
+
+.success-state p {
+  font-family: var(--font-geist-sans);
+  font-size: 13.5px;
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+.success-state a {
+  font-size: 11px;
+  font-family: var(--font-geist-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.success-state a:hover {
+  text-decoration: underline;
+}
+
+.verify-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-family: var(--font-geist-sans);
+}
+
+.verify-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--input-border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.back-link-wrap {
+  text-align: center;
+  margin-top: 14px;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 780px) {
    .auth-scene {
