@@ -5,37 +5,53 @@ import styles from '../css/Properties/ReviewPrompt.module.css';
 const REVIEW_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export default function ReviewPrompt() {
-  const [pending, setPending] = useState(null);   // { listing_id, listing_name, timestamp }
-  const [rating, setRating] = useState(0);
-  const [hovered, setHovered] = useState(0);
-  const [reviewText, setReviewText] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState(null);
+  const [ pending, setPending ] = useState(null);   // { listing_id, listing_name, timestamp }
+  const [ rating, setRating ] = useState(0);
+  const [ hovered, setHovered ] = useState(0);
+  const [ reviewText, setReviewText ] = useState('');
+  const [ submitting, setSubmitting ] = useState(false);
+  const [ submitted, setSubmitted ] = useState(false);
+  const [ error, setError ] = useState(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem('pending_review');
-    if (!raw) return;
+    function checkPending() {
+      const raw = localStorage.getItem('pending_review');
+      if (!raw) return;
 
-    try {
-      const parsed = JSON.parse(raw);
-      const age = Date.now() - parsed.timestamp;
+      try {
+        const parsed = JSON.parse(raw);
+        const age = Date.now() - parsed.timestamp;
 
-      // Expired or already reviewed — clear and bail
-      if (age > REVIEW_EXPIRY_MS) {
+        // Expired or already reviewed — clear and bail
+        if (age > REVIEW_EXPIRY_MS) {
+          localStorage.removeItem('pending_review');
+          return;
+        }
+        const alreadyReviewed = localStorage.getItem(`reviewed:${parsed.listing_id}`);
+        if (alreadyReviewed) {
+          localStorage.removeItem('pending_review');
+          return;
+        }
+
+        setPending(parsed);
+      } catch {
         localStorage.removeItem('pending_review');
-        return;
       }
-      const alreadyReviewed = localStorage.getItem(`reviewed:${parsed.listing_id}`);
-      if (alreadyReviewed) {
-        localStorage.removeItem('pending_review');
-        return;
-      }
-
-      setPending(parsed);
-    } catch {
-      localStorage.removeItem('pending_review');
     }
+
+    checkPending(); // run on mount
+
+    // Fires when user returns to the tab/app — key for mobile (switching apps to call, then back)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') checkPending();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pending_review_set', checkPending); // run on same-page trigger
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pending_review_set', checkPending);
+    };
   }, []);
 
   const handleDismiss = () => {
@@ -88,7 +104,7 @@ export default function ReviewPrompt() {
     if (!submitted) return;
     const t = setTimeout(() => setPending(null), 2000);
     return () => clearTimeout(t);
-  }, [submitted]);
+  }, [ submitted ]);
 
   if (!pending) return null;
 
@@ -118,7 +134,7 @@ export default function ReviewPrompt() {
 
             {/* Star rating */}
             <div className={styles.stars}>
-              {[1, 2, 3, 4, 5].map(star => (
+              {[ 1, 2, 3, 4, 5 ].map(star => (
                 <button
                   key={star}
                   className={`${styles.star} ${star <= (hovered || rating) ? styles.starActive : ''}`}
