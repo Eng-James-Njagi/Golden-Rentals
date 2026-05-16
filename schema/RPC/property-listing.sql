@@ -25,6 +25,8 @@ RETURNS TABLE (
   property_location  text,
   created_at         timestamptz,
   views              bigint,
+  avg_rating         numeric,
+  review_count       bigint,
   media              json
 )
 LANGUAGE sql
@@ -47,6 +49,14 @@ AS $$
       END AS decay_factor
     FROM approx_count
   ),
+  review_stats AS (
+    SELECT
+      listing_id,
+      ROUND(AVG(rating)::numeric, 2) AS avg_rating,
+      COUNT(*)::bigint               AS review_count
+    FROM listing_reviews
+    GROUP BY listing_id
+  ),
   scored AS (
     SELECT
       pl.listing_id,
@@ -64,6 +74,8 @@ AS $$
       pl.property_location,
       pl.created_at,
       pl.views,
+      COALESCE(rs.avg_rating, 0)    AS avg_rating,
+      COALESCE(rs.review_count, 0)  AS review_count,
       json_agg(
         json_build_object(
           'image_url', it.image_url,
@@ -71,15 +83,19 @@ AS $$
           'position',  it.position
         ) ORDER BY it.position
       ) FILTER (WHERE it.image_id IS NOT NULL) AS media,
-      pl.views / POWER(
+      -- Score: 70% views signal, 30% rating signal, both time-decayed
+      (
+        0.7 * pl.views + 0.3 * COALESCE(rs.avg_rating, 0) * COALESCE(rs.review_count, 0)
+      ) / POWER(
         1 + EXTRACT(EPOCH FROM (NOW() - pl.created_at)) / 3600.0,
         (SELECT decay_factor FROM decay_config)
       ) AS score
     FROM "Property_Listing" pl
-    LEFT JOIN property_categories pc ON pl.category_id = pc.category_id
-    LEFT JOIN property_types pt ON pl.property_type_id = pt.type_id
-    LEFT JOIN wards_table w ON pl.ward_id = w.ward_id
-    LEFT JOIN images_table it ON pl.listing_id = it.listing_id
+    LEFT JOIN property_categories pc ON pl.category_id    = pc.category_id
+    LEFT JOIN property_types pt      ON pl.property_type_id = pt.type_id
+    LEFT JOIN wards_table w          ON pl.ward_id         = w.ward_id
+    LEFT JOIN images_table it        ON pl.listing_id      = it.listing_id
+    LEFT JOIN review_stats rs        ON pl.listing_id      = rs.listing_id
     WHERE
       (p_listing_id        IS NULL OR pl.listing_id          = p_listing_id)
       AND (p_ward_id       IS NULL OR pl.ward_id             = p_ward_id)
@@ -105,7 +121,9 @@ AS $$
       pt.type_name,
       w.ward_name,
       w.ward_id,
-      pl.ward_location
+      pl.ward_location,
+      rs.avg_rating,
+      rs.review_count
   ),
   tiered AS (
     SELECT *,
@@ -128,17 +146,17 @@ AS $$
     property_location,
     created_at,
     views,
+    avg_rating,
+    review_count,
     media
   FROM tiered
   ORDER BY
     CASE
-      WHEN decile <= 2  THEN 1  -- hot
-      WHEN decile <= 5  THEN 2  -- warm
-      ELSE                   3  -- cold
+      WHEN decile <= 2 THEN 1
+      WHEN decile <= 5 THEN 2
+      ELSE                  3
     END,
     random()
   LIMIT p_limit
   OFFSET p_offset;
 $$;
-
-NOTIFY pgrst, 'reload schema';

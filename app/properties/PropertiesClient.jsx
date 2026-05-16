@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import FilterSidebar from '../components/Properties/FilterSidebar'
 import PropertyCard from '../components/Properties/PropertyCard'
 import styles from '../components/css/Properties/properties.module.css'
+import ReviewPrompt from '../components/Properties/ReviewPrompt'
 import { useTrackVisit } from '@/app/hooks/useTrackVisit'
 
 const PAGE_SIZE = 20
@@ -97,113 +98,116 @@ export default function PropertiesClient() {
   }
 
   return (
-    <div className={styles.pageLayout}>
-      <FilterSidebar onFilterChange={handleFilterChange} initialFilters={filters} />
+    <>
+      <ReviewPrompt />
+      <div className={styles.pageLayout}>
+        <FilterSidebar onFilterChange={handleFilterChange} initialFilters={filters} />
 
-      <main className={styles.mainContent}>
-        <div className={styles.resultsHeader}>
-          {!isLoading && pagination && (
-            <p className={styles.resultsCount}>
-              {pagination.total_records} properties found
-            </p>
-          )}
-        </div>
-
-        {error && (
-          <div className={styles.errorState}>
-            Failed to load listings — {error.message}
-          </div>
-        )}
-
-        {isLoading && (
-          <div className={styles.grid}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className={styles.skeleton} />
-            ))}
-          </div>
-        )}
-
-        {!isLoading && !error && listings.length === 0 && (
-          <div className={styles.emptyState}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-              <path d="M3 10V20M21 10V20M3 10h18M3 10L12 3l9 7" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-              <rect x="9" y="14" width="6" height="6" stroke="currentColor" strokeWidth="1.2" />
-            </svg>
-            <p>No properties match your filters.</p>
-          </div>
-        )}
-
-        {!isLoading && listings.length > 0 && (
-          <div className={styles.grid}>
-            {listings.map(listing => (
-              <PropertyCard
-                key={listing.listing_id}
-                listing={listing}
-                onWardClick={(ward_id, ward_name, property_location) =>
-                  setWardPopup({ ward_id, ward_name, property_location })
-                }
-              />
-            ))}
-          </div>
-        )}
-
-        {!isLoading && totalPages > 1 && (
-          <div className={styles.pagination}>
-            <button
-              className={styles.pageBtn}
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              aria-label="Previous page"
-            >&#8592;</button>
-
-            {pageNumbers().map((p, i) =>
-              p === '...' ? (
-                <span key={`ellipsis-${i}`} className={styles.ellipsis}>........</span>
-              ) : (
-                <button
-                  key={p}
-                  className={`${styles.pageBtn} ${p === currentPage ? styles.pageBtnActive : ''}`}
-                  onClick={() => handlePageChange(p)}
-                >{p}</button>
-              )
+        <main className={styles.mainContent}>
+          <div className={styles.resultsHeader}>
+            {!isLoading && pagination && (
+              <p className={styles.resultsCount}>
+                {pagination.total_records} properties found
+              </p>
             )}
+          </div>
 
-            <button
-              className={styles.pageBtn}
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              aria-label="Next page"
-            >&#8594;</button>
+          {error && (
+            <div className={styles.errorState}>
+              Failed to load listings — {error.message}
+            </div>
+          )}
+
+          {isLoading && (
+            <div className={styles.grid}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className={styles.skeleton} />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && !error && listings.length === 0 && (
+            <div className={styles.emptyState}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M3 10V20M21 10V20M3 10h18M3 10L12 3l9 7" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+                <rect x="9" y="14" width="6" height="6" stroke="currentColor" strokeWidth="1.2" />
+              </svg>
+              <p>No properties match your filters.</p>
+            </div>
+          )}
+
+          {!isLoading && listings.length > 0 && (
+            <div className={styles.grid}>
+              {listings.map(listing => (
+                <PropertyCard
+                  key={listing.listing_id}
+                  listing={listing}
+                  onWardClick={(ward_id, ward_name, property_location) =>
+                    setWardPopup({ ward_id, ward_name, property_location })
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && totalPages > 1 && (
+            <div className={styles.pagination}>
+              <button
+                className={styles.pageBtn}
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                aria-label="Previous page"
+              >&#8592;</button>
+
+              {pageNumbers().map((p, i) =>
+                p === '...' ? (
+                  <span key={`ellipsis-${i}`} className={styles.ellipsis}>........</span>
+                ) : (
+                  <button
+                    key={p}
+                    className={`${styles.pageBtn} ${p === currentPage ? styles.pageBtnActive : ''}`}
+                    onClick={() => handlePageChange(p)}
+                  >{p}</button>
+                )
+              )}
+
+              <button
+                className={styles.pageBtn}
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                aria-label="Next page"
+              >&#8594;</button>
+            </div>
+          )}
+        </main>
+
+        {wardPopup && (
+          <div className={styles.wardOverlay} onClick={() => setWardPopup(null)}>
+            <div className={styles.wardModal} onClick={e => e.stopPropagation()}>
+              <div className={styles.wardModalHeader}>
+                <span>{wardPopup.ward_name}</span>
+                <button onClick={() => setWardPopup(null)}>&#x2715;</button>
+              </div>
+              <div className={styles.wardModalBody}>
+                {wardPopup.property_location ? (
+                  <iframe
+                    src={wardPopup.property_location}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 'none', display: 'block' }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={`Map of ${wardPopup.ward_name}`}
+                  />
+                ) : (
+                  <p style={{ padding: '1rem' }}>No map available for this ward.</p>
+                )}
+              </div>
+            </div>
           </div>
         )}
-      </main>
-
-      {wardPopup && (
-        <div className={styles.wardOverlay} onClick={() => setWardPopup(null)}>
-          <div className={styles.wardModal} onClick={e => e.stopPropagation()}>
-            <div className={styles.wardModalHeader}>
-              <span>{wardPopup.ward_name}</span>
-              <button onClick={() => setWardPopup(null)}>&#x2715;</button>
-            </div>
-            <div className={styles.wardModalBody}>
-              {wardPopup.property_location ? (
-                <iframe
-                  src={wardPopup.property_location}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 'none', display: 'block' }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title={`Map of ${wardPopup.ward_name}`}
-                />
-              ) : (
-                <p style={{ padding: '1rem' }}>No map available for this ward.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </>
   )
 }

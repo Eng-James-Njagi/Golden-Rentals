@@ -49,9 +49,9 @@
 .description p {
   font-size: 15px;
   line-height: 1.75;
-  color: #333;
+  color:black;
   margin: 0;
-  font-family:var(--font-inter);
+  font-family:var(--font-geist-sans);
 }
 
 .empty {
@@ -87,6 +87,53 @@
   font-size: 13px;
 }
 
+.reviewCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.reviewLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.reviewAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #111;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-geist-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reviewComment {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #444;
+  font-family: var(--font-inter);
+  margin: 0;
+  padding-top: 6px;       /* aligns first line with avatar center */
+  word-break: break-word;
+}
+
+.reviewTop {
+  flex-shrink: 0;
+  padding-top: 8px;       /* optical alignment with avatar */
+}
+
 @media (max-width: 600px) {
   .tab {
     padding: 12px 10px;
@@ -99,5 +146,14 @@
 
   .mapWrap {
     height: 280px;
+  }
+
+    .reviewCard {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .reviewTop {
+    padding-top: 0;
   }
 }

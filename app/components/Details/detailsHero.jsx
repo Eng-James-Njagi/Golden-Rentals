@@ -25,11 +25,12 @@ export default function PropertyHero({ listing }) {
     ward_location,
     listing_id,
     phone_number,
+    description,
     property_location,
     media = [],
   } = listing;
 
-  
+
 
   // Build ordered media items — each has either image_url or video_url (or both; image used as video poster)
   const mediaItems = (media ?? [])
@@ -171,29 +172,48 @@ export default function PropertyHero({ listing }) {
           )}
         </div>
 
-       <div className={styles.BadgeClass}>
-         {furnished && (
-          <span className={`${styles.badge} ${furnished === 'furnished' ? styles.badgeFurnished : styles.badgeUnfurnished}`}>
-            {property_interior}
-          </span>
-        )}
+        <div className={styles.BadgeClass}>
+          {furnished && (
+            <span className={`${styles.badge} ${furnished === 'furnished' ? styles.badgeFurnished : styles.badgeUnfurnished}`}>
+              {property_interior}
+            </span>
+          )}
 
-        {rent_duration && (
-          <span className={styles.durationBadge}>Rent Duration:
-            {rent_duration === 'short-term' ? ' Short Term' : ' Long Term'}
-          </span>
-        )}
-       </div>
+          {rent_duration && (
+            <span className={styles.durationBadge}>Rent Duration:
+              {rent_duration === 'short-term' ? ' Short Term' : ' Long Term'}
+            </span>
+          )}
+        </div>
+
 
         {phone_number && (
 
           <a href={`tel:${phone_number}`}
             className={styles.contactBtn}
             onClick={(e) => {
-              e.preventDefault(); 
+              e.preventDefault();
+
+              // Generate or retrieve persistent fingerprint
+              let fingerprint = localStorage.getItem('cr_fingerprint');
+              if (!fingerprint) {
+                fingerprint = crypto.randomUUID();
+                localStorage.setItem('cr_fingerprint', fingerprint);
+              }
+
+              // Store pending review only if not already reviewed
+              const alreadyReviewed = localStorage.getItem(`reviewed:${listing_id}`);
+              if (!alreadyReviewed) {
+                localStorage.setItem('pending_review', JSON.stringify({
+                  listing_id,
+                  listing_name: property_name,
+                  timestamp: Date.now(),
+                }));
+              }
+
               fetch(`/api/listings/${listing_id}/calls`, { method: 'POST' })
                 .finally(() => {
-                  window.location.href = `tel:0${phone_number}`; 
+                  window.location.href = `tel:0${phone_number}`;
                 });
             }}
           >
