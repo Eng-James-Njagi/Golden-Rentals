@@ -194,14 +194,12 @@ export default function PropertyHero({ listing }) {
             onClick={(e) => {
               e.preventDefault();
 
-              // Generate or retrieve persistent fingerprint
               let fingerprint = localStorage.getItem('cr_fingerprint');
               if (!fingerprint) {
                 fingerprint = crypto.randomUUID();
                 localStorage.setItem('cr_fingerprint', fingerprint);
               }
 
-              // Store pending review only if not already reviewed
               const alreadyReviewed = localStorage.getItem(`reviewed:${listing_id}`);
               if (!alreadyReviewed) {
                 localStorage.setItem('pending_review', JSON.stringify({
@@ -209,7 +207,7 @@ export default function PropertyHero({ listing }) {
                   listing_name: property_name,
                   timestamp: Date.now(),
                 }));
-                window.dispatchEvent(new Event('pending_review_set'));
+                // No dispatchEvent — prompt shows when user comes back to the page
               }
 
               fetch(`/api/listings/${listing_id}/calls`, { method: 'POST' })
