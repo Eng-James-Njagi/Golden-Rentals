@@ -149,6 +149,7 @@ export default function PropertyCard({ listing, onWardClick }) {
                       listing_name: property_name,
                       timestamp: Date.now(),
                     }));
+                    window.dispatchEvent(new Event('pending_review_set'));
                   }
 
                   fetch(`/api/listings/${listing_id}/calls`, { method: 'POST' })
