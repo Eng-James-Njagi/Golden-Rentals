@@ -68,14 +68,19 @@ function Stars({ rating }) {
 }
 
 // ─── Reviews Modal ────────────────────────────────────────────────────────────
-// PLACEHOLDER — replace PLACEHOLDER_REVIEWS with real fetch once reviews table exists
-const PLACEHOLDER_REVIEWS = [
-   { id: 1, name: 'James M.', rating: 5, comment: 'Great place, very clean and the landlord is responsive.' },
-   { id: 2, name: 'Aisha K.', rating: 4, comment: 'Good location, a bit noisy at night but overall fine.' },
-   { id: 3, name: 'Brian O.', rating: 3, comment: 'Average. Water issues occasionally but manageable.' },
-];
-
 function ReviewsModal({ listing, onClose }) {
+   const [ reviews, setReviews ] = useState([]);
+   const [ reviewsLoading, setReviewsLoading ] = useState(true);
+   const [ reviewsError, setReviewsError ] = useState(null);
+
+   useEffect(() => {
+      fetch(`/api/listings/${listing.listing_id}/reviews`)
+         .then((r) => { if (!r.ok) throw new Error('Failed to fetch reviews.'); return r.json(); })
+         .then((json) => setReviews(json.data ?? []))
+         .catch((e) => setReviewsError(e.message))
+         .finally(() => setReviewsLoading(false));
+   }, [ listing.listing_id ]);
+
    const handleBackdrop = (e) => { if (e.target === e.currentTarget) onClose(); };
 
    useEffect(() => {
@@ -105,10 +110,10 @@ function ReviewsModal({ listing, onClose }) {
                   <div>
                      <p className={styles.modalLabel}>Reviews</p>
                      <h3 className={styles.modalTitle}>{listing.property_name}</h3>
-                     {(listing.ward_name || listing.property_location) && (
+                     {(listing.ward_name || listing.ward_location) && (
                         <p className={styles.modalLocation}>
                            <PinIcon />
-                           {[ listing.ward_name, listing.property_location ].filter(Boolean).join(' · ')}
+                           {[ listing.ward_name, listing.ward_location ].filter(Boolean).join(' · ')}
                         </p>
                      )}
                   </div>
@@ -120,23 +125,49 @@ function ReviewsModal({ listing, onClose }) {
 
             {/* Summary strip */}
             <div className={styles.modalSummary}>
-               <span className={styles.modalRating}>{listing.rating ?? '—'}</span>
-               <Stars rating={listing.rating ?? 0} />
-               <span className={styles.modalReviewCount}>{PLACEHOLDER_REVIEWS.length} reviews</span>
+               <span className={styles.modalRating}>
+                  {listing.avg_rating > 0 ? listing.avg_rating : '—'}
+               </span>
+               <Stars rating={Math.round(listing.avg_rating ?? 0)} />
+               <span className={styles.modalReviewCount}>
+                  {listing.review_count} review{listing.review_count !== 1 ? 's' : ''}
+               </span>
             </div>
 
             {/* Review cards */}
             <div className={styles.reviewList}>
-               {PLACEHOLDER_REVIEWS.map((r) => (
-                  <div key={r.id} className={styles.reviewCard}>
+               {reviewsLoading && (
+                  <div className={styles.detailSkeletons}>
+                     {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className={styles.detailSkeleton} />
+                     ))}
+                  </div>
+               )}
+
+               {reviewsError && (
+                  <p className={styles.errorBanner}>{reviewsError}</p>
+               )}
+
+               {!reviewsLoading && !reviewsError && reviews.length === 0 && (
+                  <div className={styles.emptyState}>
+                     <p>No reviews yet for this listing.</p>
+                  </div>
+               )}
+
+               {!reviewsLoading && !reviewsError && reviews.map((r) => (
+                  <div key={r.review_id} className={styles.reviewCard}>
                      <div className={styles.reviewTop}>
-                        <div className={styles.reviewAvatar}>{r.name.charAt(0)}</div>
+                        <div className={styles.reviewAvatar}>
+                           {r.fingerprint.charAt(0).toUpperCase()}
+                        </div>
                         <div>
-                           <p className={styles.reviewName}>{r.name}</p>
+                           <p className={styles.reviewName}>Anonymous</p>
                            <Stars rating={r.rating} />
                         </div>
                      </div>
-                     <p className={styles.reviewComment}>{r.comment}</p>
+                     {r.review_text && (
+                        <p className={styles.reviewComment}>{r.review_text}</p>
+                     )}
                   </div>
                ))}
             </div>
@@ -156,7 +187,6 @@ function ListingRow({ listing, onReviewsClick }) {
          tabIndex={0}
          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onReviewsClick(listing); }}
       >
-
          {/* Thumbnail */}
          <div className={styles.rowThumb}>
             {listing.image_url ? (
@@ -175,13 +205,13 @@ function ListingRow({ listing, onReviewsClick }) {
          {/* Name + location */}
          <div className={styles.detailMeta}>
             <p className={styles.detailName}>{listing.property_name}</p>
-            {(listing.ward_name || listing.ward_location) && (   // ← fixed
+            {(listing.ward_name || listing.ward_location) && (
                <p className={styles.detailLocation}>
                   <span className={styles.detailLocationIcon}><PinIcon /></span>
-                  {[ listing.ward_name, listing.ward_location ].filter(Boolean).join(' · ')}  
+                  {[ listing.ward_name, listing.ward_location ].filter(Boolean).join(' · ')}
                </p>
             )}
-            <span className={styles.moreDetails}>more details…</span>  
+            <span className={styles.moreDetails}>more details…</span>
          </div>
 
          {/* Stats */}
@@ -194,15 +224,18 @@ function ListingRow({ listing, onReviewsClick }) {
                <span className={styles.statIcon}><PhoneIcon /></span>
                {(listing.call_logs ?? 0).toLocaleString()}
             </span>
-            <span className={styles.reviewsChip}>   {/* ← changed button to span, whole row is clickable */}
-               <Stars rating={listing.rating ?? 0} />
-               <span className={styles.reviewsChipLabel}>Reviews</span>
+            <span className={styles.statChip}>
+               <span className={styles.statIcon}><StarIcon size={13} /></span>
+               {listing.avg_rating > 0 ? listing.avg_rating : '—'}
+            </span>
+            <span className={styles.statChip}>
+               {listing.review_count} review{listing.review_count !== 1 ? 's' : ''}
             </span>
          </div>
-
       </div>
    );
 }
+
 // ─── Summary Card ─────────────────────────────────────────────────────────────
 function SummaryCard({ label, value, icon, colorClass }) {
    return (
@@ -261,7 +294,7 @@ export default function Analytics() {
                   <>
                      <SummaryCard label="Total Views" value={summary?.totalViews ?? null} icon={<EyeIcon size={18} />} colorClass="colorBlue" />
                      <SummaryCard label="Total Calls" value={summary?.totalCalls ?? null} icon={<PhoneIcon size={18} />} colorClass="colorAmber" />
-                     <SummaryCard label="Total Reviews" value={null} icon={<StarIcon size={18} />} colorClass="colorTeal" />
+                     <SummaryCard label="Total Reviews" value={summary?.totalReviews ?? null} icon={<StarIcon size={18} />} colorClass="colorTeal" />
                   </>
                )}
             </div>

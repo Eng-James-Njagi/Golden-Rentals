@@ -133,6 +133,24 @@ export default function PropertyCard({ listing, onWardClick }) {
                 aria-label="Call agent"
                 onClick={(e) => {
                   e.preventDefault();
+
+                  // Generate or retrieve persistent fingerprint
+                  let fingerprint = localStorage.getItem('cr_fingerprint');
+                  if (!fingerprint) {
+                    fingerprint = crypto.randomUUID();
+                    localStorage.setItem('cr_fingerprint', fingerprint);
+                  }
+
+                  // Store pending review — only if not already reviewed this listing
+                  const alreadyReviewed = localStorage.getItem(`reviewed:${listing_id}`);
+                  if (!alreadyReviewed) {
+                    localStorage.setItem('pending_review', JSON.stringify({
+                      listing_id,
+                      listing_name: property_name,
+                      timestamp: Date.now(),
+                    }));
+                  }
+
                   fetch(`/api/listings/${listing_id}/calls`, { method: 'POST' })
                     .finally(() => {
                       window.location.href = `tel:0${phone_number}`;

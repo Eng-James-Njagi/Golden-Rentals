@@ -1,10 +1,11 @@
 /* ── Hero: two-column layout ── */
 .hero {
    display: grid;
-   grid-template-columns: 50% 1fr;
+   grid-template-columns: 42% 1fr;
    gap: 28px;
    align-items: stretch;
    width:100%;
+   margin-top:10px;
 }
 
 /* ── Left column: gallery ── */
@@ -120,9 +121,8 @@
 .infoPanel {
    display: flex;
    flex-direction: column;
-   gap: 12px;
-   padding: 4px 10px;
-   align-self: stretch;
+   padding: 0;
+   align-self: space-evenly;
    background: #f9f9f9;
    justify-content: space-around;
    width:100%;
@@ -156,7 +156,7 @@
 }
 
 .price {
-   font-size: 22px;
+   font-size: 20px;
    font-weight: 700;
    color: var(--primary);
    font-family:var(--font-geist-mono)
@@ -170,16 +170,15 @@
 .metaChips {
    display: flex;
    flex-wrap: wrap;
-   flex-direction:column;
-   gap: 10px;
-   padding:2px 0;
+   gap: 8px;
+   padding:0;
 }
 
 .chip {
    display: inline-flex;
    align-items: center;
    gap: 6px;
-   font-size: 16px;
+   font-size: 12px;
    font-weight: 500;
    color: #222;
    font-family:var(--font-inter);
@@ -261,16 +260,20 @@
    }
 
    .mainViewer {
-      aspect-ratio: 16 / 10;
+      aspect-ratio: 18 / 9;
    }
 
    .thumb {
       flex: 1 1 0;
       min-width: 0;
-      height: 60px;
+      height: 80px;
+   }
+   .infoPanel{
+      gap:10px;
+      padding:6px 0;
    }
 
    .contactBtn {
-      width: 80%;
+      width: 70%;
    }
 }

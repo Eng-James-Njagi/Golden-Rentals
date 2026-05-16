@@ -1,23 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../css/Details/detailsTab.module.css';
 
-const TABS = ['Description', 'Property Location', 'Reviews'];
+const TABS = [ 'Description', 'Property Location', 'Reviews' ];
 
 function convertToEmbedUrl(url) {
   if (!url) return null;
-  // Already an embed URL
   if (url.includes('/maps/embed')) return url;
-  // Attempt to pass through — stored as embed URL per decision
   return url;
 }
 
+function Stars({ rating }) {
+  return (
+    <span className={styles.stars}>
+      {[ 1, 2, 3, 4, 5 ].map(n => (
+        <span key={n} className={rating >= n ? styles.starFilled : styles.starEmpty}>
+          ★
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export default function PropertyTabs({ listing }) {
-  const { description, property_location } = listing;
-  const [active, setActive] = useState('Description');
+  const { description, property_location, listing_id } = listing;
+  const [ active, setActive ] = useState('Description');
+  const [ reviews, setReviews ] = useState([]);
+  const [ reviewsLoading, setReviewsLoading ] = useState(false);
+  const [ reviewsError, setReviewsError ] = useState(null);
 
   const embedUrl = convertToEmbedUrl(property_location);
+
+  useEffect(() => {
+    if (active !== 'Reviews') return;
+    if (reviews.length > 0) return; // already fetched
+
+    setReviewsLoading(true);
+    setReviewsError(null);
+
+    fetch(`/api/listings/${listing_id}/reviews`)
+      .then(r => { if (!r.ok) throw new Error('Failed to fetch reviews'); return r.json(); })
+      .then(json => setReviews(json.data ?? []))
+      .catch(e => setReviewsError(e.message))
+      .finally(() => setReviewsLoading(false));
+  }, [ active, listing_id ]);
 
   return (
     <div className={styles.tabsContainer}>
@@ -67,6 +94,44 @@ export default function PropertyTabs({ listing }) {
                   <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.2" />
                 </svg>
                 <span>Location not available</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {active === 'Reviews' && (
+          <div className={styles.reviewsPanel}>
+            {reviewsLoading && (
+              <div className={styles.reviewsLoading}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className={styles.reviewSkeleton} />
+                ))}
+              </div>
+            )}
+
+            {reviewsError && (
+              <p className={styles.empty}>Failed to load reviews.</p>
+            )}
+
+            {!reviewsLoading && !reviewsError && reviews.length === 0 && (
+              <p className={styles.empty}>No reviews yet for this listing.</p>
+            )}
+
+            {!reviewsLoading && !reviewsError && reviews.length > 0 && (
+              <div className={styles.reviewsList}>
+                {reviews.map(r => (
+                  <div key={r.review_id} className={styles.reviewCard}>
+                    <div className={styles.reviewLeft}>
+                      <div className={styles.reviewAvatar}>U</div>
+                      {r.review_text && (
+                        <p className={styles.reviewComment}>{r.review_text}</p>
+                      )}
+                    </div>
+                    <div className={styles.reviewTop}>
+                      <Stars rating={r.rating} />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
