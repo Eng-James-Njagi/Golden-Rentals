@@ -17,6 +17,7 @@ function LoadingSkeleton() {
   )
 }
 
+
 export default function PropertiesPage() {
   return (
     <Suspense fallback={<LoadingSkeleton />}>
