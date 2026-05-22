@@ -6,111 +6,55 @@ import {
 } from 'recharts';
 import styles from '../css/growthMetrics.module.css';
 
-function getWeekOptions() {
+function toUTCRange(startDateStr) {
+   // startDateStr: 'YYYY-MM-DD' in local time, treat as UTC start of day
+   const [y, m, d] = startDateStr.split('-').map(Number);
+   const start = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+   const end   = new Date(Date.UTC(y, m - 1, d + 6, 23, 59, 59)); // +6 days = 7-day window
+   return { start: start.toISOString(), end: end.toISOString() };
+}
+
+function todayStr() {
    const now = new Date();
-   const year = now.getFullYear();
-   const month = now.getMonth();
-   return [ 1, 2, 3, 4 ].map(w => {
-      const startDay = (w - 1) * 7 + 1;
-      const endDay = w * 7;
-      return {
-         label: `Week ${w}`,
-         start: new Date(Date.UTC(year, month, startDay, 0, 0, 0)).toISOString(),
-         end: new Date(Date.UTC(year, month, endDay, 23, 59, 59)).toISOString(),
-      };
-   });
+   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
 }
-
-function getMonthOptions() {
-   const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-   ];
-   return months.map((name, i) => {
-      const year = new Date().getFullYear();
-      const lastDay = new Date(Date.UTC(year, i + 1, 0)).getUTCDate();
-      return {
-         label: name,
-         start: new Date(Date.UTC(year, i, 1, 0, 0, 0)).toISOString(),
-         end: new Date(Date.UTC(year, i, lastDay, 23, 59, 59)).toISOString(),
-      };
-   });
-}
-
-function getYearOptions() {
-   const current = new Date().getFullYear();
-   const years = [];
-   for (let y = 2026; y <= current; y++) {
-      years.push({
-         label: String(y),
-         start: new Date(Date.UTC(y, 0, 1, 0, 0, 0)).toISOString(),
-         end: new Date(Date.UTC(y, 11, 31, 23, 59, 59)).toISOString(),
-      });
-   }
-   return years;
-}
-
-const WEEK_OPTIONS = getWeekOptions();
-const MONTH_OPTIONS = getMonthOptions();
-const YEAR_OPTIONS = getYearOptions();
 
 export default function GrowthMetricsChart() {
-   const [ data, setData ] = useState([]);
-   const [ week, setWeek ] = useState(WEEK_OPTIONS[ 0 ]);
-   const [ month, setMonth ] = useState(MONTH_OPTIONS[ new Date().getMonth() ]);
-   const [ year, setYear ] = useState(YEAR_OPTIONS.at(-1) ?? YEAR_OPTIONS[ 0 ] ?? null);
-   const [ active, setActive ] = useState('week');
+   const [data, setData]           = useState([]);
+   const [startDate, setStartDate] = useState(todayStr());
 
    useEffect(() => {
-      const selected = active === 'week' ? week : active === 'month' ? month : year;
-      console.log('Fetching range:', selected.start, selected.end);
-      fetch(`/api/adminRo/analytics?start=${selected.start}&end=${selected.end}`)
+      const { start, end } = toUTCRange(startDate);
+      fetch(`/api/adminRo/analytics?start=${start}&end=${end}`)
          .then(r => r.json())
          .then(rows => setData(rows.map(r => ({
             date: r.date.slice(5),
             visits: Number(r.visits),
          }))));
-   }, [ active, week, month, year ]);
+   }, [startDate]);
 
-   if (!week || !month || !year) return null;
 
-   return (
+    return (
       <section className={styles.section}>
          <h2 className={styles.title}>Platform Growth Metrics</h2>
 
          <div className={styles.controls}>
-            <select
-               className={`${styles.dropdown} ${active === 'week' ? styles.dropdownActive : ''}`}
-               value={week.label}
-               onChange={e => {
-                  setWeek(WEEK_OPTIONS.find(w => w.label === e.target.value));
-                  setActive('week');
-               }}
-            >
-               {WEEK_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
-            </select>
-
-            <select
-               className={`${styles.dropdown} ${active === 'month' ? styles.dropdownActive : ''}`}
-               value={month.label}
-               onChange={e => {
-                  setMonth(MONTH_OPTIONS.find(m => m.label === e.target.value));
-                  setActive('month');
-               }}
-            >
-               {MONTH_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
-            </select>
-
-            <select
-               className={`${styles.dropdown} ${active === 'year' ? styles.dropdownActive : ''}`}
-               value={year.label}
-               onChange={e => {
-                  setYear(YEAR_OPTIONS.find(y => y.label === e.target.value));
-                  setActive('year');
-               }}
-            >
-               {YEAR_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
-            </select>
+            <label className={styles.dateLabel}>
+               Start Date
+               <input
+                  type="date"
+                  className={styles.dateInput}
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+               />
+            </label>
+            <span className={styles.dateRangeInfo}>
+               {/* show the computed end date for clarity */}
+               {(() => {
+                  const { end } = toUTCRange(startDate);
+                  return `→ ${end.slice(0, 10)}`;
+               })()}
+            </span>
          </div>
 
          <div className={styles.chartWrapper}>

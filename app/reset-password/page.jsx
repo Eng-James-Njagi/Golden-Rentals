@@ -25,11 +25,11 @@ const LockIcon = () => (
 );
 
 export default function ResetPassword() {
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [ password, setPassword ] = useState("");
+  const [ confirm, setConfirm ] = useState("");
+  const [ showPw, setShowPw ] = useState(false);
+  const [ loading, setLoading ] = useState(false);
+  const [ ready, setReady ] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -50,8 +50,9 @@ export default function ResetPassword() {
 
     if (sbError) { toast.error(sbError.message); return; }
 
+    await supabase.auth.signOut();
     toast.success("Password updated. Redirecting…");
-    setTimeout(() => router.push("/"), 1800);
+    setTimeout(() => router.push("/Auth"), 1800);
   };
 
   return (

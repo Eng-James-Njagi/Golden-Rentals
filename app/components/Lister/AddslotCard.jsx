@@ -1,22 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../css/Lister/AddslotCard.module.css';
-
-// ─────────────────────────────────────────────
-// MPESA_ENABLED toggle
-// false → route increments slot directly, no payment tables touched
-// true  → route fires real Daraja STK push
-// ─────────────────────────────────────────────
-const MPESA_ENABLED = false;
 
 const SLOT_PRICE_KES = 500;
 
 export default function AddSlotCard({ onSlotAdded }) {
+   const [ mpesaEnabled, setMpesaEnabled ] = useState(false);
    const [ phone, setPhone ] = useState('');
    const [ quantity, setQuantity ] = useState(1);
    const [ step, setStep ] = useState('idle'); // idle | confirm | processing | success | error
    const [ errorMsg, setErrorMsg ] = useState('');
+
+   useEffect(() => {
+      fetch('/api/adminRo/settings')
+         .then(r => r.json())
+         .then(data => setMpesaEnabled(data.mpesa_enabled));
+   }, []);
 
    const totalKes = SLOT_PRICE_KES * quantity;
 
@@ -28,7 +28,7 @@ export default function AddSlotCard({ onSlotAdded }) {
    };
 
    const handleInitiate = () => {
-      if (MPESA_ENABLED && !normalisePhone(phone)) {
+      if (mpesaEnabled && !normalisePhone(phone)) {
          setErrorMsg('Enter a valid Safaricom number (07XX or 2547XX).');
          return;
       }
@@ -54,7 +54,7 @@ export default function AddSlotCard({ onSlotAdded }) {
          const json = await res.json();
          if (!res.ok) throw new Error(json.error ?? 'Request failed.');
 
-         if (MPESA_ENABLED && json.CheckoutRequestID) {
+         if (mpesaEnabled && json.CheckoutRequestID) {
             await pollForCompletion(json.CheckoutRequestID);
          }
 
@@ -91,7 +91,7 @@ export default function AddSlotCard({ onSlotAdded }) {
       <div className={styles.card}>
 
          <span className={styles.badge}>
-            {MPESA_ENABLED ? 'M-Pesa' : 'Simulated'}
+            {mpesaEnabled ? 'M-Pesa' : 'Simulated'}
          </span>
 
          <div className={styles.iconWrap} aria-hidden>
@@ -111,7 +111,7 @@ export default function AddSlotCard({ onSlotAdded }) {
          {(step === 'idle' || step === 'error') && (
             <div className={styles.form}>
 
-               {MPESA_ENABLED && (
+               {mpesaEnabled && (
                   <div className={styles.field}>
                      <label className={styles.label} htmlFor="slot-phone">
                         Safaricom number
@@ -129,9 +129,7 @@ export default function AddSlotCard({ onSlotAdded }) {
                )}
 
                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="slot-qty">
-                     Slots
-                  </label>
+                  <label className={styles.label} htmlFor="slot-qty">Slots</label>
                   <div className={styles.stepper}>
                      <button
                         className={styles.stepBtn}
@@ -147,12 +145,10 @@ export default function AddSlotCard({ onSlotAdded }) {
                   </div>
                </div>
 
-               {errorMsg && (
-                  <p className={styles.errorText}>{errorMsg}</p>
-               )}
+               {errorMsg && <p className={styles.errorText}>{errorMsg}</p>}
 
                <button className={styles.primaryBtn} onClick={handleInitiate}>
-                  {MPESA_ENABLED
+                  {mpesaEnabled
                      ? `Pay KES ${totalKes.toLocaleString()}`
                      : `Add ${quantity} slot${quantity > 1 ? 's' : ''} (simulated)`}
                </button>
@@ -163,17 +159,15 @@ export default function AddSlotCard({ onSlotAdded }) {
          {step === 'confirm' && (
             <div className={styles.confirmBlock}>
                <p className={styles.confirmMsg}>
-                  {MPESA_ENABLED
+                  {mpesaEnabled
                      ? <><strong>KES {totalKes.toLocaleString()}</strong> STK push to <strong>{phone}</strong> for {quantity} slot{quantity > 1 ? 's' : ''}?</>
                      : <>Add <strong>{quantity}</strong> slot{quantity > 1 ? 's' : ''} to your account (no charge)?</>}
                </p>
                <div className={styles.confirmRow}>
                   <button className={styles.primaryBtn} onClick={handleConfirm}>
-                     {MPESA_ENABLED ? 'Confirm & Pay' : 'Confirm'}
+                     {mpesaEnabled ? 'Confirm & Pay' : 'Confirm'}
                   </button>
-                  <button className={styles.ghostBtn} onClick={reset}>
-                     Cancel
-                  </button>
+                  <button className={styles.ghostBtn} onClick={reset}>Cancel</button>
                </div>
             </div>
          )}
@@ -183,7 +177,7 @@ export default function AddSlotCard({ onSlotAdded }) {
             <div className={styles.statusBlock}>
                <span className={styles.spinner} aria-label="Processing" />
                <p className={styles.statusText}>
-                  {MPESA_ENABLED
+                  {mpesaEnabled
                      ? 'STK push sent — approve on your phone'
                      : 'Writing to database…'}
                </p>
@@ -202,11 +196,10 @@ export default function AddSlotCard({ onSlotAdded }) {
                <p className={styles.statusText}>
                   {quantity} slot{quantity > 1 ? 's' : ''} added successfully.
                </p>
-               <button className={styles.ghostBtn} onClick={reset}>
-                  Add more
-               </button>
+               <button className={styles.ghostBtn} onClick={reset}>Add more</button>
             </div>
          )}
+
       </div>
    );
 }

@@ -42,6 +42,31 @@
    transition: border-color 0.2s;
 }
 
+.dateLabel {
+   display: flex;
+   flex-direction: column;
+   gap: 4px;
+   font-size: 0.8rem;
+   font-family:var(--font-geist-sans)
+}
+
+.dateInput {
+   padding: 4px 8px;
+   border-radius: 4px;
+   border: 1px solid var(--border);
+   font-family:var(--font-geist-mono);
+   background: var(--surface);
+   color: var(--text);
+}
+
+.dateRangeInfo {
+   font-size: 0.8rem;
+   color: var(--text-muted);
+   font-family:var(--font-inter);
+   align-self: flex-end;
+   padding-bottom: 6px;
+}
+
 .dropdown:focus {
    outline: none;
    border-color: #111827;
@@ -71,9 +96,10 @@
    pointer-events: none;
    z-index: 1;
 }
+
 .chartWrapper svg:focus,
 .chartWrapper svg *:focus {
-  outline: none;
+   outline: none;
 }
 
 .axisLabel {
@@ -122,9 +148,10 @@
       margin-left: -10px;
       width: calc(100% + 10px);
    }
+
    .panelWrap {
-    padding: 16px 18px;
-  }
+      padding: 16px 18px;
+   }
 }
 
 @media (max-width: 480px) {
@@ -145,8 +172,9 @@
       margin-left: -10px;
       width: 100%;
    }
+
    .panelWrap {
-    padding: 14px 16px;
-  }
+      padding: 14px 16px;
+   }
 
 }

@@ -3,15 +3,7 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 
-
-
-// ── Toggle ────────────────────────────────────────────────────
-// false → increment Slots only, skip all payment tables
-// true  → full Daraja STK push + Pending_Payments + Payment_Ledger
-const MPESA_ENABLED = false;
-
 const SLOT_PRICE_KES = 500;
-
 const DARAJA_BASE_URL = process.env.DARAJA_BASE_URL ?? 'https://sandbox.safaricom.co.ke';
 const DARAJA_CONSUMER_KEY = process.env.DARAJA_CONSUMER_KEY ?? '';
 const DARAJA_CONSUMER_SECRET = process.env.DARAJA_CONSUMER_SECRET ?? '';
@@ -19,6 +11,20 @@ const DARAJA_SHORTCODE = process.env.DARAJA_SHORTCODE ?? '';
 const DARAJA_PASSKEY = process.env.DARAJA_PASSKEY ?? '';
 const DARAJA_CALLBACK_URL = process.env.DARAJA_CALLBACK_URL ?? '';
 
+
+// ── Toggle ────────────────────────────────────────────────────
+// false → increment Slots only, skip all payment tables
+// true  → full Daraja STK push + Pending_Payments + Payment_Ledger
+async function isMpesaEnabled(supabase) {
+  const { data, error } = await supabase
+    .from('system_settings')
+    .select('value')
+    .eq('action', 'mpesa_enabled')
+    .single();
+ 
+  if (error || !data) return false;
+  return data.value === 'true';
+}
 
 // ═══════════════════════════════════════════════════════════════
 // POST /api/subscription

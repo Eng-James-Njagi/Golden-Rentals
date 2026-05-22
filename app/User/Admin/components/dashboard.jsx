@@ -18,68 +18,33 @@ const REVENUE_CARDS = [
   { label: 'Total Calls', key: 'totalCalls', prefix: '' },
 ];
 
-function getWeekOptions() {
+function toUTCRange(startDateStr) {
+  const [y, m, d] = startDateStr.split('-').map(Number);
+  const start = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+  const end   = new Date(Date.UTC(y, m - 1, d + 6, 23, 59, 59));
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+function todayStr() {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  return [ 1, 2, 3, 4 ].map(w => ({
-    label: `Week ${w}`,
-    start: new Date(Date.UTC(year, month, (w - 1) * 7 + 1, 0, 0, 0)).toISOString(),
-    end: new Date(Date.UTC(year, month, w * 7, 23, 59, 59)).toISOString(),
-  }));
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
 }
-
-function getMonthOptions() {
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  return months.map((name, i) => {
-    const year = new Date().getFullYear();
-    const lastDay = new Date(Date.UTC(year, i + 1, 0)).getUTCDate();
-    return {
-      label: name,
-      start: new Date(Date.UTC(year, i, 1, 0, 0, 0)).toISOString(),
-      end: new Date(Date.UTC(year, i, lastDay, 23, 59, 59)).toISOString(),
-    };
-  });
-}
-
-function getYearOptions() {
-  const current = new Date().getFullYear();
-  const years = [];
-  for (let y = 2026; y <= current; y++) {
-    years.push({
-      label: String(y),
-      start: new Date(Date.UTC(y, 0, 1, 0, 0, 0)).toISOString(),
-      end: new Date(Date.UTC(y, 11, 31, 23, 59, 59)).toISOString(),
-    });
-  }
-  return years;
-}
-
-const WEEK_OPTIONS = getWeekOptions();
-const MONTH_OPTIONS = getMonthOptions();
-const YEAR_OPTIONS = getYearOptions();
 
 const formatValue = (value, prefix) =>
   prefix ? `${prefix} ${Number(value).toLocaleString()}` : Number(value).toLocaleString();
 
 export default function Dashboard() {
-  const [ stats, setStats ] = useState({
+  const [stats, setStats] = useState({
     activeListings: 0, suspendedListings: 0,
     registeredListers: 0, totalVisits: 0,
   });
 
-  const [ revenueStats, setRevenueStats ] = useState({
+  const [revenueStats, setRevenueStats] = useState({
     totalRevenue: 0, totalTransactions: 0, totalCalls: 0,
   });
 
-  const [ filtered, setFiltered ] = useState(false);
-  const [ week, setWeek ] = useState(WEEK_OPTIONS[ 0 ]);
-  const [ month, setMonth ] = useState(MONTH_OPTIONS[ new Date().getMonth() ]);
-  const [ year, setYear ] = useState(YEAR_OPTIONS[ YEAR_OPTIONS.length - 1 ]);
-  const [ active, setActive ] = useState('week');
+  const [filtered, setFiltered]     = useState(false);
+  const [startDate, setStartDate]   = useState(todayStr());
 
   // fetch stat cards
   useEffect(() => {
@@ -90,25 +55,25 @@ export default function Dashboard() {
 
   // fetch revenue
   useEffect(() => {
-    const selected = active === 'week' ? week : active === 'month' ? month : year;
     const params = new URLSearchParams({ filtered: String(filtered) });
     if (filtered) {
-      params.set('start', selected.start);
-      params.set('end', selected.end);
+      const { start, end } = toUTCRange(startDate);
+      params.set('start', start);
+      params.set('end', end);
     }
     fetch(`/api/adminRo/revenue?${params}`)
       .then(r => r.json())
-      .then(data => setRevenueStats(prev => ({
-        ...prev,
-        totalRevenue: data.totalRevenue ?? 0,
+      .then(data => setRevenueStats({
+        totalRevenue:      data.totalRevenue      ?? 0,
         totalTransactions: data.totalTransactions ?? 0,
-        totalCalls: data.totalCalls ?? 0,
-      })));
-  }, [ filtered, active, week, month, year ]);
+        totalCalls:        data.totalCalls        ?? 0,
+      }));
+  }, [filtered, startDate]);
 
+  // fetch total visits (all time)
   useEffect(() => {
     const start = new Date(Date.UTC(2020, 0, 1)).toISOString();
-    const end = new Date().toISOString();
+    const end   = new Date().toISOString();
     fetch(`/api/adminRo/analytics?start=${start}&end=${end}`)
       .then(r => r.json())
       .then(rows => {
@@ -123,7 +88,7 @@ export default function Dashboard() {
         {STAT_CARDS.map((card, i) => (
           <div key={card.key} className={cardStyles.card} style={{ animationDelay: `${i * 60}ms` }}>
             <span className={cardStyles.cardLabel}>{card.label}</span>
-            <span className={cardStyles.cardValue}>{stats[ card.key ]}</span>
+            <span className={cardStyles.cardValue}>{stats[card.key]}</span>
           </div>
         ))}
       </section>
@@ -142,42 +107,21 @@ export default function Dashboard() {
           </label>
 
           <div className={`${revenueStyles.dropdowns} ${!filtered ? revenueStyles.dropdownsDisabled : ''}`}>
-            <select
-              disabled={!filtered}
-              className={`${revenueStyles.dropdown} ${active === 'week' ? revenueStyles.dropdownActive : ''}`}
-              value={week.label}
-              onChange={e => {
-                setWeek(WEEK_OPTIONS.find(w => w.label === e.target.value));
-                setActive('week');
-              }}
-            >
-              {WEEK_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
-            </select>
-
-            <select
-              disabled={!filtered}
-              className={`${revenueStyles.dropdown} ${active === 'month' ? revenueStyles.dropdownActive : ''}`}
-              value={month.label}
-              onChange={e => {
-                setMonth(MONTH_OPTIONS.find(m => m.label === e.target.value));
-                setActive('month');
-              }}
-            >
-              {MONTH_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
-            </select>
-
-            <select
-              disabled={!filtered}
-              className={`${revenueStyles.dropdown} ${active === 'year' ? revenueStyles.dropdownActive : ''}`}
-              value={year.label}
-              onChange={e => {
-                setYear(YEAR_OPTIONS.find(y => y.label === e.target.value));
-                setActive('year');
-              }}
-            >
-              {YEAR_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
-            </select>
+            <label className={revenueStyles.dateLabel}>
+              Start Date
+              <input
+                type="date"
+                disabled={!filtered}
+                className={revenueStyles.dateInput}
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+              />
+            </label>
+            <span className={revenueStyles.dateRangeInfo}>
+              {toUTCRange(startDate).end.slice(0, 10)}
+            </span>
           </div>
+
         </div>
 
         <div className={revenueStyles.revenueCards}>
@@ -185,7 +129,7 @@ export default function Dashboard() {
             <div key={card.key} className={revenueStyles.revenueCard}>
               <span className={revenueStyles.revenueCardLabel}>{card.label}</span>
               <span className={revenueStyles.revenueCardValue}>
-                {formatValue(revenueStats[ card.key ], card.prefix)}
+                {formatValue(revenueStats[card.key], card.prefix)}
               </span>
             </div>
           ))}
