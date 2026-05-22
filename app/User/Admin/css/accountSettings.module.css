@@ -243,6 +243,73 @@
   margin-bottom: 1rem;
 }
 
+/* ── append to accountSettings.module.css ── */
+
+/* Toggle switch */
+.featureToggle {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 12px;
+  background: #d1d5db;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+  padding: 0;
+}
+
+.featureToggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.featureToggleOn {
+  background: #F5A623;
+}
+
+.featureToggleThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  display: block;
+}
+
+.featureToggleOn .featureToggleThumb {
+  transform: translateX(18px);
+}
+
+/* Edit window days inline row */
+.featureDaysRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.featureDaysInput {
+  width: 72px;
+  font-size: 0.875rem;
+  font-family: var(--font-geist-mono);
+  color: #111827;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 5px 8px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.featureDaysInput:focus {
+  border-color: #F5A623;
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.12);
+}
+
 /* ── Responsive ── */
 @media (max-width: 780px) {
   .adminSectionsGrid {

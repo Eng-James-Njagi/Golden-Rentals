@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import styles from '../css/accountSettings.module.css';
-import { toast } from 'sonner'
+import { toast } from 'sonner';
 
 const Icon = ({ d }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
@@ -19,7 +19,7 @@ const icons = {
 
 const FieldDisplay = ({ icon, label, value, masked = false }) => (
   <div className={styles.adminFieldRow}>
-    <Icon d={icons[ icon ]} />
+    <Icon d={icons[icon]} />
     <div className={styles.adminFieldBody}>
       <span className={styles.adminFieldLabel}>{label}</span>
       <span className={`${styles.adminFieldValue} ${masked ? styles.adminMasked : ''}`}>
@@ -31,7 +31,7 @@ const FieldDisplay = ({ icon, label, value, masked = false }) => (
 
 const FieldEdit = ({ icon, label, name, type = 'text', value, onChange, hint }) => (
   <div className={styles.adminFieldRow}>
-    <Icon d={icons[ icon ]} />
+    <Icon d={icons[icon]} />
     <div className={styles.adminFieldBody}>
       <label className={styles.adminFieldLabel} htmlFor={name}>{label}</label>
       <input
@@ -65,21 +65,161 @@ const Section = ({ title, children, editing, onEdit, onSave, onCancel, saved, lo
   </div>
 );
 
+// ── System Features ──────────────────────────────────────────
+function SystemFeatures() {
+  const [mpesa, setMpesa]         = useState(false);
+  const [editDays, setEditDays]   = useState(5);
+  const [draftDays, setDraftDays] = useState(5);
+  const [editingDays, setEditingDays] = useState(false);
+  const [loading, setLoading]     = useState(true);
+  const [saving, setSaving]       = useState({ mpesa: false, days: false });
+
+  useEffect(() => {
+    fetch('/api/adminRo/settings')
+      .then(r => r.json())
+      .then(data => {
+        setMpesa(data.mpesa_enabled);
+        setEditDays(data.edit_window_days);
+        setDraftDays(data.edit_window_days);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const toggleMpesa = async (next) => {
+    setSaving(s => ({ ...s, mpesa: true }));
+    try {
+      const res = await fetch('/api/adminRo/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mpesa_enabled', value: String(next) }),
+      });
+      if (!res.ok) throw new Error('Failed to update.');
+      setMpesa(next);
+      toast.success(`M-Pesa payments ${next ? 'activated' : 'deactivated'}.`);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSaving(s => ({ ...s, mpesa: false }));
+    }
+  };
+
+  const saveEditDays = async () => {
+    const val = Math.max(1, Math.min(365, parseInt(draftDays, 10) || 1));
+    setSaving(s => ({ ...s, days: true }));
+    try {
+      const res = await fetch('/api/adminRo/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'edit_window_days', value: String(val) }),
+      });
+      if (!res.ok) throw new Error('Failed to update.');
+      setEditDays(val);
+      setDraftDays(val);
+      setEditingDays(false);
+      toast.success(`Edit window set to ${val} day${val !== 1 ? 's' : ''}.`);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSaving(s => ({ ...s, days: false }));
+    }
+  };
+
+  if (loading) return (
+    <div className={styles.adminSection}>
+      <div className={styles.adminSectionHeader}>
+        <span className={styles.adminSectionTitle}>System Features</span>
+      </div>
+      <div className={styles.adminSectionBody}>
+        <p className={styles.adminLoading}>Loading settings…</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className={styles.adminSection}>
+      <div className={styles.adminSectionHeader}>
+        <span className={styles.adminSectionTitle}>System Features</span>
+      </div>
+      <div className={styles.adminSectionBody}>
+
+        {/* ── MPESA toggle ── */}
+        <div className={styles.adminFieldRow}>
+          <div className={styles.adminFieldBody}>
+            <span className={styles.adminFieldLabel}>Activate Listing Payment</span>
+            <span className={styles.adminFieldValue}>
+              {mpesa ? 'M-Pesa payments live' : 'Simulated (no charge)'}
+            </span>
+          </div>
+          <button
+            className={`${styles.featureToggle} ${mpesa ? styles.featureToggleOn : ''}`}
+            onClick={() => toggleMpesa(!mpesa)}
+            disabled={saving.mpesa}
+            aria-label="Toggle M-Pesa"
+          >
+            <span className={styles.featureToggleThumb} />
+          </button>
+        </div>
+
+        {/* ── Edit window days ── */}
+        <div className={styles.adminFieldRow}>
+          <div className={styles.adminFieldBody}>
+            <span className={styles.adminFieldLabel}>Editing Window Days</span>
+            {editingDays ? (
+              <div className={styles.featureDaysRow}>
+                <input
+                  type="number"
+                  min={1}
+                  max={365}
+                  className={styles.featureDaysInput}
+                  value={draftDays}
+                  onChange={e => setDraftDays(e.target.value)}
+                />
+                <button
+                  className={styles.adminSaveBtn}
+                  onClick={saveEditDays}
+                  disabled={saving.days || String(draftDays) === String(editDays)}
+                >
+                  {saving.days ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  className={styles.adminCancelBtn}
+                  onClick={() => { setDraftDays(editDays); setEditingDays(false); }}
+                  disabled={saving.days}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <span className={styles.adminFieldValue}>{editDays} day{editDays !== 1 ? 's' : ''}</span>
+            )}
+          </div>
+          {!editingDays && (
+            <button className={styles.adminEditBtn} onClick={() => setEditingDays(true)}>
+              Edit
+            </button>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────
 const EMPTY = { username: '', email: '' };
 
 export default function AdminAccountSettings() {
-  const [ data, setData ] = useState(EMPTY);
-  const [ fetching, setFetching ] = useState(true);
-  const [ error, setError ] = useState(null);
+  const [data, setData]       = useState(EMPTY);
+  const [fetching, setFetching] = useState(true);
+  const [error, setError]     = useState(null);
 
-  // separate drafts per section
-  const [ accountDraft, setAccountDraft ] = useState({ username: '' });
-  const [ securityDraft, setSecurityDraft ] = useState({ email: '', password: '' });
+  const [accountDraft, setAccountDraft]   = useState({ username: '' });
+  const [securityDraft, setSecurityDraft] = useState({ email: '', password: '' });
 
-  const [ editing, setEditing ] = useState({ account: false, security: false });
-  const [ loading, setLoading ] = useState({ account: false, security: false });
-  const [ saved, setSaved ] = useState({ account: false, security: false });
-  const [ dirty, setDirty ] = useState({ account: false, security: false });
+  const [editing, setEditing] = useState({ account: false, security: false });
+  const [loading, setLoading] = useState({ account: false, security: false });
+  const [saved, setSaved]     = useState({ account: false, security: false });
+  const [dirty, setDirty]     = useState({ account: false, security: false });
 
   const fetchAccount = () =>
     fetch('/api/adminRo/account')
@@ -101,41 +241,41 @@ export default function AdminAccountSettings() {
 
   const handleAccountChange = useCallback(e => {
     const { name, value } = e.target;
-    setAccountDraft(prev => ({ ...prev, [ name ]: value }));
+    setAccountDraft(prev => ({ ...prev, [name]: value }));
     setDirty(prev => ({ ...prev, account: true }));
   }, []);
 
   const handleSecurityChange = useCallback(e => {
     const { name, value } = e.target;
-    setSecurityDraft(prev => ({ ...prev, [ name ]: value }));
+    setSecurityDraft(prev => ({ ...prev, [name]: value }));
     setDirty(prev => ({ ...prev, security: true }));
   }, []);
 
   const startEdit = section => {
-    if (section === 'account') setAccountDraft({ username: data.username });
+    if (section === 'account')  setAccountDraft({ username: data.username });
     if (section === 'security') setSecurityDraft({ email: data.email, password: '' });
-    setEditing(prev => ({ ...prev, [ section ]: true }));
-    setDirty(prev => ({ ...prev, [ section ]: false }));
+    setEditing(prev => ({ ...prev, [section]: true }));
+    setDirty(prev => ({ ...prev, [section]: false }));
     setError(null);
   };
 
   const cancelEdit = section => {
-    setEditing(prev => ({ ...prev, [ section ]: false }));
-    setDirty(prev => ({ ...prev, [ section ]: false }));
+    setEditing(prev => ({ ...prev, [section]: false }));
+    setDirty(prev => ({ ...prev, [section]: false }));
     setError(null);
   };
 
   const save = async (section) => {
-    setLoading(prev => ({ ...prev, [ section ]: true }));
+    setLoading(prev => ({ ...prev, [section]: true }));
     setError(null);
 
     const body = section === 'account'
       ? { type: 'account', username: accountDraft.username }
       : {
-        type: 'security',
-        email: securityDraft.email.trim() || null,
-        password: securityDraft.password.trim() || null,
-      };
+          type:     'security',
+          email:    securityDraft.email.trim()    || null,
+          password: securityDraft.password.trim() || null,
+        };
 
     try {
       const res = await fetch('/api/adminRo/account', {
@@ -148,18 +288,19 @@ export default function AdminAccountSettings() {
       if (!res.ok) throw new Error(json.error ?? 'Failed to save.');
 
       await fetchAccount();
-      setEditing(prev => ({ ...prev, [ section ]: false }));
-      setDirty(prev => ({ ...prev, [ section ]: false }));
+      setEditing(prev => ({ ...prev, [section]: false }));
+      setDirty(prev => ({ ...prev, [section]: false }));
+
       if (section === 'security') {
-        toast.success('Changes saved. Check your Gmail for a confirmation link.')
+        toast.success('Changes saved. Check your Gmail for a confirmation link.');
       } else {
-        toast.success('Username updated successfully.')
+        toast.success('Username updated successfully.');
       }
 
     } catch (err) {
-      toast.error(err.message)
+      toast.error(err.message);
     } finally {
-      setLoading(prev => ({ ...prev, [ section ]: false }));
+      setLoading(prev => ({ ...prev, [section]: false }));
     }
   };
 
@@ -179,8 +320,6 @@ export default function AdminAccountSettings() {
       {error && <p className={styles.adminErrorBanner}>{error}</p>}
 
       <div className={styles.adminSectionsGrid}>
-
-        {/* ── Account Details: username ── */}
         <Section
           title="Account Details"
           editing={editing.account}
@@ -199,7 +338,6 @@ export default function AdminAccountSettings() {
           )}
         </Section>
 
-        {/* ── Security: email + password ── */}
         <Section
           title="Security"
           editing={editing.security}
@@ -225,8 +363,11 @@ export default function AdminAccountSettings() {
             </>
           )}
         </Section>
-
       </div>
+
+      {/* ── System Features — full width ── */}
+      <SystemFeatures />
+
     </div>
   );
 }
