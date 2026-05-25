@@ -20,8 +20,8 @@ export async function GET(request, { params }) {
 
     // 1. Fetch listing via RPC
     const { data: listingRows, error: listingError } = await admin.rpc('get_listings_paginated', {
-      p_limit:      1,
-      p_offset:     0,
+      p_limit: 1,
+      p_offset: 0,
       p_listing_id: listing_id,
     });
 
@@ -29,7 +29,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: listingError.message }, { status: 500 });
     }
 
-    const listing = listingRows?.[0] ?? null;
+    const listing = listingRows?.[ 0 ] ?? null;
     if (!listing) {
       return NextResponse.json({ error: 'Listing not found.' }, { status: 404 });
     }
@@ -47,6 +47,12 @@ export async function GET(request, { params }) {
 
     const listerUUID = plRow.user_id;
 
+    const { data: reviews } = await admin
+      .from('listing_reviews')
+      .select('review_id, rating, review_text, created_at, fingerprint')
+      .eq('listing_id', listing_id)
+      .order('created_at', { ascending: false });
+
     // 3. Fetch lister from Listers_Info — column is lister_UUID (no extra quotes in .eq)
     const { data: lister, error: listerError } = await admin
       .from('Listers_Info')
@@ -55,10 +61,15 @@ export async function GET(request, { params }) {
       .single();
 
     if (listerError || !lister) {
-      return NextResponse.json({ error:  'No lister available.' }, { status: 404 });
+      return NextResponse.json({
+        listing,
+        lister: null,
+        otherListings: [],
+        reviews: reviews ?? [],  // ← now included
+      });
     }
 
-    // 4. Fetch other listings by same lister
+    // 4. Fetch other listings and reviews concurrently
     const { data: listerListings } = await admin
       .from('Property_Listing')
       .select('listing_id')
@@ -70,13 +81,13 @@ export async function GET(request, { params }) {
     let filteredOther = [];
     if (listerListingIds.size > 0) {
       const { data: otherRows } = await admin.rpc('get_listings_paginated', {
-        p_limit:  20,
+        p_limit: 20,
         p_offset: 0,
       });
       filteredOther = (otherRows ?? []).filter(l => listerListingIds.has(l.listing_id));
     }
 
-    return NextResponse.json({ listing, lister, otherListings: filteredOther });
+    return NextResponse.json({ listing, lister, otherListings: filteredOther, reviews: reviews ?? [] });
 
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

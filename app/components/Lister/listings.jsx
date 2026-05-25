@@ -121,7 +121,7 @@ export default function MyListings({ slotData, onSlotAdded }) {
    if (editingListing) {
       return (
          <AddListing
-            canAdd={true}
+            canAdd={slotData?.can_add ?? false}
             prefill={editingListing}
             onDone={handleEditDone}
          />
@@ -161,6 +161,8 @@ export default function MyListings({ slotData, onSlotAdded }) {
             <div className={styles.errorState}>{error}</div>
          )}
 
+            <AddSlotCard onSlotAdded={() => { fetchListings(currentPage); if (onSlotAdded) onSlotAdded(); }} />
+
          {/* ── Skeletons ── */}
          {loading && (
             <div className={styles.grid}>
@@ -169,8 +171,6 @@ export default function MyListings({ slotData, onSlotAdded }) {
                ))}
             </div>
          )}
-
-         <AddSlotCard onSlotAdded={() => { fetchListings(currentPage); if (onSlotAdded) onSlotAdded(); }} />
 
          {/* ── Empty ── */}
          {!loading && !error && listings.length === 0 && (

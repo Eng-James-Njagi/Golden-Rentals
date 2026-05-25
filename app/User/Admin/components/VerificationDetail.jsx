@@ -42,8 +42,18 @@ function FilterTags({ listing }) {
 }
 
 function Gallery({ media = [], propertyName }) {
-  const items = media.filter(m => m.image_url || m.video_url)
-    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+  const items = (media ?? [])
+    .filter(m => m.image_url || m.video_url)
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+    .flatMap(m => {
+      if (m.image_url && m.video_url) {
+        return [
+          { image_url: null, video_url: m.video_url, position: -1 },
+          { image_url: m.image_url, video_url: null, position: m.position },
+        ];
+      }
+      return [ m ];
+    });
 
   const defaultIndex = items.findIndex(m => m.video_url);
   const [ activeIndex, setActiveIndex ] = useState(defaultIndex === -1 ? 0 : defaultIndex);
@@ -239,7 +249,27 @@ function PropertyDetails({ listing }) {
           )
         )}
         {subTab === 'reviews' && (
-          <p className={styles.description}>Reviews coming soon.</p>
+          <div className={styles.reviewsList}>
+            {(listing.reviews ?? []).length === 0 ? (
+              <p className={styles.description}>No reviews yet.</p>
+            ) : (
+              (listing.reviews ?? []).map(r => (
+                <div key={r.review_id} className={styles.reviewItem}>
+                  <div className={styles.reviewHeader}>
+                    <StarRating rating={r.rating} />
+                    <span className={styles.reviewDate}>
+                      {new Date(r.created_at).toLocaleDateString('en-KE', {
+                        day: 'numeric', month: 'short', year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  {r.review_text && (
+                    <p className={styles.reviewText}>{r.review_text}</p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         )}
       </div>
 
@@ -488,7 +518,7 @@ export default function VerificationDetail({ id, onBack, onSelect }) {
 
       {tab === 'property' && (
         <PropertyDetails
-          listing={{ ...data.listing, lister: data.lister, otherListings: data.otherListings }}
+          listing={{ ...data.listing, lister: data.lister, otherListings: data.otherListings, reviews: data.reviews ?? [] }}
           onSelect={onSelect}
         />
       )}

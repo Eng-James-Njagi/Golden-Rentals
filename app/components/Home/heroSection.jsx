@@ -24,7 +24,7 @@ export default function Hero() {
           We connect you directly with verified landlords so you never have to
           worry about fake listings or unsafe houses. Browse thousands of
           verified listings and find a place that fits your life, your budget, and
-          your neighbourhood.
+          your neighborhood.
         </p>
 
         <Link href="/properties" className={styles.heroCta}>

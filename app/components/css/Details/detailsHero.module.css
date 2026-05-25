@@ -4,8 +4,8 @@
    grid-template-columns: 42% 1fr;
    gap: 28px;
    align-items: stretch;
-   width:100%;
-   margin-top:10px;
+   width: 100%;
+   margin-top: 10px;
 }
 
 /* ── Left column: gallery ── */
@@ -125,7 +125,7 @@
    align-self: space-evenly;
    background: #f9f9f9;
    justify-content: space-around;
-   width:100%;
+   width: 100%;
 }
 
 .categoryLabel {
@@ -133,7 +133,7 @@
    font-weight: 700;
    letter-spacing: 0.08em;
    color: var(--primary);
-   font-family:var(--font-geist-mono);
+   font-family: var(--font-geist-mono);
    display: flex;
    align-items: center;
    gap: 4px;
@@ -142,11 +142,11 @@
 .title {
    font-size: clamp(20px, 3vw, 28px);
    font-weight: 700;
-   font-family:var(--font-geist-sans);
+   font-family: var(--font-geist-sans);
    color: #111;
    margin: 0;
    line-height: 1.2;
-   width:100%;
+   width: 100%;
 }
 
 .priceRow {
@@ -159,19 +159,19 @@
    font-size: 20px;
    font-weight: 700;
    color: var(--primary);
-   font-family:var(--font-geist-mono)
+   font-family: var(--font-geist-mono)
 }
 
 .perMonth {
    font-size: 13px;
-   color:var(--secondary);
+   color: var(--secondary);
 }
 
 .metaChips {
    display: flex;
    flex-wrap: wrap;
    gap: 8px;
-   padding:0;
+   padding: 0;
 }
 
 .chip {
@@ -181,11 +181,12 @@
    font-size: 12px;
    font-weight: 500;
    color: #222;
-   font-family:var(--font-inter);
+   font-family: var(--font-inter);
 }
-.BadgeClass{
-   display:flex;
-   flex-wrap:wrap;
+
+.BadgeClass {
+   display: flex;
+   flex-wrap: wrap;
    gap: 10px;
 
 }
@@ -197,7 +198,7 @@
    font-size: 13px;
    font-weight: 500;
    width: fit-content;
-   font-family:var(--font-inter);
+   font-family: var(--font-inter);
 }
 
 .badgeFurnished {
@@ -207,7 +208,7 @@
 
 .badgeUnfurnished {
    background-color: var(--secondary);
-   color:black;
+   color: black;
 }
 
 .durationBadge {
@@ -215,7 +216,7 @@
    padding: 4px 12px;
    border-radius: 4px;
    font-size: 13px;
-   font-family:var(--font-inter);
+   font-family: var(--font-inter);
    font-weight: 500;
    background: #f0f0f0;
    color: var(--darkSecondary);
@@ -229,27 +230,40 @@
    gap: 8px;
    padding: 14px 12px;
    background: #2ecc5f;
-   border:2px solid black;
+   border: 2px solid black;
    color: #000000;
    font-size: 15px;
    font-weight: 700;
-   font-family:var(--font-inter);
+   font-family: var(--font-inter);
    letter-spacing: 0.04em;
    border-radius: 2px;
    text-decoration: none;
    margin-top: 4px;
-   width:200px;
+   width: 200px;
+   border-radius: 8px;
+   box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.25) inset,
+      0 4px 10px rgba(46, 204, 95, 0.35),
+      0 1px 3px rgba(0, 0, 0, 0.15);
    transition: background 0.15s ease, transform 0.1s ease;
 }
 
 .contactBtn:hover {
    background: var(--secondary);
-   color:black;
+   color: black;
    transform: translateY(-1px);
+   box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.25) inset,
+      0 6px 16px rgba(46, 204, 95, 0.45),
+      0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .contactBtn:active {
    transform: translateY(0);
+   transform: translateY(1px);
+   box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.15),
+      0 0px 0px rgba(46, 204, 95, 0);
 }
 
 
@@ -268,9 +282,10 @@
       min-width: 0;
       height: 80px;
    }
-   .infoPanel{
-      gap:10px;
-      padding:6px 0;
+
+   .infoPanel {
+      gap: 10px;
+      padding: 6px 0;
    }
 
    .contactBtn {

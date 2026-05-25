@@ -26,6 +26,8 @@ async function isMpesaEnabled(supabase) {
   return data.value === 'true';
 }
 
+
+
 // ═══════════════════════════════════════════════════════════════
 // POST /api/subscription
 // ═══════════════════════════════════════════════════════════════
@@ -100,9 +102,10 @@ async function handleAddSlots(request, body) {
    }
 
    const quantity = Math.max(1, Math.min(20, parseInt(body.quantity ?? 1, 10)));
+   const mpesaEnabled = await isMpesaEnabled(supabase);  
 
    // ── Simulated: increment only, no payment tables touched ──
-   if (!MPESA_ENABLED) {
+   if (!mpesaEnabled)  {
       const result = await incrementSlots(supabase, user.id, quantity);
       if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
 
