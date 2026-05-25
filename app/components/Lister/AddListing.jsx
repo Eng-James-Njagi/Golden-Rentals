@@ -324,7 +324,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
       fd.append('ward_location', form.ward_location);
       fd.append('property_location', form.property_location);
       fd.append('category_id', form.category);
-      fd.append('property_type_id', form.type);
+      fd.append('type_id', form.type);
       fd.append('rent_duration', form.duration);
       fd.append('property_interior', form.furniture);
       fd.append('phone_number', form.phone);
@@ -338,7 +338,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
       if (form.video) fd.append('video', form.video);
 
-      const url = isEdit ? `/api/listings/${prefill.listing_id}` : '/api/AddListing';
+      const url = isEdit ? `/api/listings/${prefill.listing_id}` : '/api/listings';
       const method = isEdit ? 'PATCH' : 'POST';
 
       const res = await fetch(url, { method, body: fd });
