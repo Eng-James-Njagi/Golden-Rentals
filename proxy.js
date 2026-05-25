@@ -3,6 +3,19 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from './lib/supabase/server';
 
 export async function proxy(request) {
+  const { pathname } = request.nextUrl;
+
+  // ── Root redirect ──
+  if (pathname === '/') {
+    const hasVisited = request.cookies.get('has_visited');
+    if (!hasVisited) {
+      const response = NextResponse.redirect(new URL('/properties', request.url));
+      response.cookies.set('has_visited', 'true', { maxAge: 60 * 60 * 24 * 365 });
+      return response;
+    }
+  }
+
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -40,5 +53,5 @@ export async function proxy(request) {
 }
 
 export const config = {
-  matcher: [ '/User/Admin', '/User/Admin/(.*)', '/User/Lister', '/User/Lister/(.*)' ],
+  matcher: [ '/', '/User/Admin', '/User/Admin/(.*)', '/User/Lister', '/User/Lister/(.*)' ],
 };

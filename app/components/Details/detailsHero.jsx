@@ -12,6 +12,19 @@ function PlayIcon() {
     </svg>
   );
 }
+function StarRating({ rating = 0 }) {
+  return (
+    <div style={{ display: 'flex', gap: '2px' }}>
+      {[ 1, 2, 3, 4, 5 ].map(i => (
+        <svg key={i} width="16" height="16" viewBox="0 0 24 24"
+          fill={i <= Math.round(rating) ? '#F5A623' : 'none'}
+          stroke="#F5A623" strokeWidth="1.4">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      ))}
+    </div>
+  );
+}
 
 export default function PropertyHero({ listing }) {
   const {
@@ -25,8 +38,8 @@ export default function PropertyHero({ listing }) {
     ward_location,
     listing_id,
     phone_number,
-    description,
-    property_location,
+    avg_rating,
+    review_count,
     media = [],
   } = listing;
 
@@ -49,6 +62,7 @@ export default function PropertyHero({ listing }) {
   const [ activeIndex, setActiveIndex ] = useState(0);
   const active = mediaItems[ activeIndex ] ?? null;
   const furnished = property_interior?.toLowerCase();
+  
 
   return (
     <section className={styles.hero}>
@@ -141,6 +155,15 @@ export default function PropertyHero({ listing }) {
           <span className={styles.price}>KSH {Number(property_price).toLocaleString('en-KE')}</span>
           <span className={styles.perMonth}>/mo</span>
         </div>
+
+        {(Number(review_count) > 0 || Number(avg_rating) > 0) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily:'var(--font-inter)' }}>
+            <StarRating rating={Number(avg_rating) ?? 0} />
+            <span style={{ fontSize: '0.875rem', color: '#374151' }}>
+              {Number(avg_rating) ?? 0} ({Number(review_count) ?? 0} {Number(review_count) === 1 ? 'review' : 'reviews'})
+            </span>
+          </div>
+        )}
 
         <div className={styles.metaChips}>
           {type_name && (

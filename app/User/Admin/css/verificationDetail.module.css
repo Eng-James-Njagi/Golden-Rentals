@@ -138,7 +138,7 @@
 
 .thumbStrip {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   overflow-x: unset; 
 }
@@ -390,6 +390,43 @@
 
 .ldSection {
    margin-bottom: 1rem;
+}
+
+.reviewsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.reviewItem {
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.reviewItem:last-child {
+  border-bottom: none;
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-family:var(--font-geist-sans);
+}
+
+.reviewDate {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  font-family:var(--font-geist-mono);
+}
+
+.reviewText {
+  font-size: 0.875rem;
+  font-family:var(--font-inter);
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* ── Other listings carousel ── */

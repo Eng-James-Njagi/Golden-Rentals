@@ -35,8 +35,8 @@ function filtersToParams(filters, page) {
   return params
 }
 
-async function fetchListings(filters, page) {
-  const params = filtersToParams(filters, page)
+async function fetchListings(filters, bufferPage) {
+  const params = filtersToParams(filters, bufferPage)
   params.set('prefetch', 'true')
   const res = await fetch(`/api/listings?${params.toString()}`)
   if (!res.ok) throw new Error('Failed to fetch listings')
@@ -51,16 +51,28 @@ export default function PropertiesClient() {
   const [ filters, setFilters ] = useState(() => filtersFromParams(searchParams))
   const [ currentPage, setCurrentPage ] = useState(() => Number(searchParams.get('page') ?? 1))
   const [ wardPopup, setWardPopup ] = useState(null)
+  const BUFFER_SIZE = 2  // pages per buffer block
+
+  // which 40-block we're in (pages 1-2 = buffer 1, pages 3-4 = buffer 2, etc.)
+  const bufferPage = Math.ceil(currentPage / BUFFER_SIZE)
+
+  // position within the buffer (0 or 1)
+  const indexInBuffer = (currentPage - 1) % BUFFER_SIZE
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [ 'listings', filters, currentPage ],  // cache key — unique per filter+page combo
-    queryFn: () => fetchListings(filters, currentPage),
+    queryKey: [ 'listings', filters, bufferPage ],  // cache key — unique per filter+page combo
+    queryFn: () => fetchListings(filters, bufferPage),
     // inherits staleTime/gcTime from provider defaults
   })
 
-  const listings = data?.data ?? []
+  const allData = data?.data ?? []
   const pagination = data?.pagination ?? null
   const totalPages = pagination?.total_pages ?? 1
+
+  const listings = allData.slice(
+    indexInBuffer * PAGE_SIZE,
+    indexInBuffer * PAGE_SIZE + PAGE_SIZE
+  )
 
   // sync URL
   const syncUrl = (f, p) => {

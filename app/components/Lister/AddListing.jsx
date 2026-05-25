@@ -316,8 +316,11 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
     try {
       const fd = new FormData();
+      const selectedWard = filters.wards.find(w => w.ward_name === form.ward);
+
       fd.append('property_name', form.name);
       fd.append('ward_name', form.ward);
+      fd.append('ward_id', selectedWard?.ward_id ?? '');
       fd.append('ward_location', form.ward_location);
       fd.append('property_location', form.property_location);
       fd.append('category_id', form.category);
@@ -328,9 +331,11 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
       fd.append('property_price', form.price);
       fd.append('description', form.description);
 
-      form.images.forEach((file) => {
-        if (file) fd.append('images', file);
+      // Images must be keyed as image_0, image_1, image_2 — API reads formData.get('image_0') etc.
+      form.images.forEach((file, i) => {
+        if (file) fd.append(`image_${i}`, file);
       });
+
       if (form.video) fd.append('video', form.video);
 
       const url = isEdit ? `/api/listings/${prefill.listing_id}` : '/api/AddListing';
@@ -425,7 +430,8 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
             <FieldSelect
               icon="layers" label="Type" name="type"
               options={typeOptions} value={form.type}
-              onChange={handleChange} errors={errors}
+              onChange={handleChange} errors={errors
+              }
               disabled={!form.category || filtersLoading || (!canAdd && !isEdit)}
             />
             <FieldSelect

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './css/Navigation/nav.module.css';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,11 +16,24 @@ export default function Navbar() {
   const role = session?.user?.user_metadata?.role;
   const pathname = usePathname();
   const router = useRouter();
+  const [ visible, setVisible ] = useState(true);
+  const lastScrollY = useRef(0);
 
   /* ── Scroll listener ── */
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      const current = window.scrollY;
+      if (current < 10) {
+        setVisible(true);
+      } else if (current > lastScrollY.current) {
+        setVisible(false); // scrolling down
+      } else {
+        setVisible(true);  // scrolling up
+      }
+      lastScrollY.current = current;
+      setScrolled(current > 10);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -59,16 +72,16 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
+    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''} ${visible ? '' : styles.navHidden}`}>
       <div className={styles.brand}>
         <span className={styles.logoIcon}>
-          <Image 
-          width={34}
-          height={34}
-          alt="Logo"
-          src='/logo2.png'/>
+          <Image
+            width={34}
+            height={34}
+            alt="Logo"
+            src='/logo2.png' />
         </span>
-        <span className={styles.brandName}>City Rentals</span>
+        <span className={styles.brandName}>Metro Rentals</span>
       </div>
 
       <ul className={`${styles.navLinks} ${menuOpen ? styles.navOpen : ''}`}>
