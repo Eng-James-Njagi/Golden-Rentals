@@ -327,7 +327,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
       fd.append('type_id', form.type);
       fd.append('rent_duration', form.duration);
       fd.append('property_interior', form.furniture);
-      fd.append('phone_number', form.phone);
+      fd.append('phone_number', form.phone.replace(/\s/g, ''));
       fd.append('property_price', form.price);
       fd.append('description', form.description);
 
@@ -341,6 +341,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
       const url = isEdit ? `/api/listings/${prefill.listing_id}` : '/api/listings';
       const method = isEdit ? 'PATCH' : 'POST';
 
+      {/*console.table(Object.fromEntries(fd)); */}
       const res = await fetch(url, { method, body: fd });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? (isEdit ? 'Failed to update listing.' : 'Failed to post listing.'));

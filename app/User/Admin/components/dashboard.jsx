@@ -7,7 +7,7 @@ import GrowthMetricsChart from "./GrowthMetricsChart";
 
 const STAT_CARDS = [
   { label: "Active Listings", key: "activeListings" },
-  { label: "Suspended Listings", key: "suspendedListings" },
+  { label: "Suspended Account", key: "suspendedAccount" },
   { label: "Registered Listers", key: "registeredListers" },
   { label: "Total Visits", key: "totalVisits" },
 ];
@@ -19,9 +19,9 @@ const REVENUE_CARDS = [
 ];
 
 function toUTCRange(startDateStr) {
-  const [y, m, d] = startDateStr.split('-').map(Number);
+  const [ y, m, d ] = startDateStr.split('-').map(Number);
   const start = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
-  const end   = new Date(Date.UTC(y, m - 1, d + 6, 23, 59, 59));
+  const end = new Date(Date.UTC(y, m - 1, d + 6, 23, 59, 59));
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
@@ -34,23 +34,26 @@ const formatValue = (value, prefix) =>
   prefix ? `${prefix} ${Number(value).toLocaleString()}` : Number(value).toLocaleString();
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    activeListings: 0, suspendedListings: 0,
+  const [ stats, setStats ] = useState({
+    activeListings: 0, suspendedAccount: 0,
     registeredListers: 0, totalVisits: 0,
   });
 
-  const [revenueStats, setRevenueStats] = useState({
+  const [ revenueStats, setRevenueStats ] = useState({
     totalRevenue: 0, totalTransactions: 0, totalCalls: 0,
   });
 
-  const [filtered, setFiltered]     = useState(false);
-  const [startDate, setStartDate]   = useState(todayStr());
+  const [ filtered, setFiltered ] = useState(false);
+  const [ startDate, setStartDate ] = useState(todayStr());
 
   // fetch stat cards
   useEffect(() => {
     fetch("/api/Admin")
       .then(r => r.json())
-      .then(data => setStats(data));
+      .then(data => {
+        const { totalVisits, ...rest } = data;
+        setStats(prev => ({ ...prev, ...rest }));
+      });
   }, []);
 
   // fetch revenue
@@ -64,16 +67,16 @@ export default function Dashboard() {
     fetch(`/api/adminRo/revenue?${params}`)
       .then(r => r.json())
       .then(data => setRevenueStats({
-        totalRevenue:      data.totalRevenue      ?? 0,
+        totalRevenue: data.totalRevenue ?? 0,
         totalTransactions: data.totalTransactions ?? 0,
-        totalCalls:        data.totalCalls        ?? 0,
+        totalCalls: data.totalCalls ?? 0,
       }));
-  }, [filtered, startDate]);
+  }, [ filtered, startDate ]);
 
   // fetch total visits (all time)
   useEffect(() => {
     const start = new Date(Date.UTC(2020, 0, 1)).toISOString();
-    const end   = new Date().toISOString();
+    const end = new Date().toISOString();
     fetch(`/api/adminRo/analytics?start=${start}&end=${end}`)
       .then(r => r.json())
       .then(rows => {
@@ -88,7 +91,7 @@ export default function Dashboard() {
         {STAT_CARDS.map((card, i) => (
           <div key={card.key} className={cardStyles.card} style={{ animationDelay: `${i * 60}ms` }}>
             <span className={cardStyles.cardLabel}>{card.label}</span>
-            <span className={cardStyles.cardValue}>{stats[card.key]}</span>
+            <span className={cardStyles.cardValue}>{stats[ card.key ]}</span>
           </div>
         ))}
       </section>
@@ -129,7 +132,7 @@ export default function Dashboard() {
             <div key={card.key} className={revenueStyles.revenueCard}>
               <span className={revenueStyles.revenueCardLabel}>{card.label}</span>
               <span className={revenueStyles.revenueCardValue}>
-                {formatValue(revenueStats[card.key], card.prefix)}
+                {formatValue(revenueStats[ card.key ], card.prefix)}
               </span>
             </div>
           ))}

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import styles from '../css/verificationDetail.module.css';
 
-const ACTION_OPTIONS = [ '', 'Suspend Listing', 'Approve Listing', 'Mark as Reported', 'Remove Listing' ];
+const ACTION_OPTIONS = [ '', 'Suspend Account', 'Delete Account', 'Mark as Reported', 'Remove Listing' ];
 
 
 function StarRating({ rating = 0 }) {

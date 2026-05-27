@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import styles from '../css/Properties/ReviewPrompt.module.css';
 
-const REVIEW_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+const REVIEW_EXPIRY_MS = 2 * 60 * 1000;
 
 export default function ReviewPrompt() {
   const [ pending, setPending ] = useState(null);   // { listing_id, listing_name, timestamp }
@@ -20,25 +20,12 @@ export default function ReviewPrompt() {
 
       try {
         const parsed = JSON.parse(raw);
-        const age = Date.now() - parsed.timestamp;
-
-        if (age > REVIEW_EXPIRY_MS) {
-          localStorage.removeItem('pending_review');
-          return;
-        }
-        const alreadyReviewed = localStorage.getItem(`reviewed:${parsed.listing_id}`);
-        if (alreadyReviewed) {
-          localStorage.removeItem('pending_review');
-          return;
-        }
-
         setPending(parsed);
       } catch {
         localStorage.removeItem('pending_review');
       }
     }
 
-    // Only fires when user comes BACK to the page after leaving (e.g. switching to phone app to call)
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') checkPending();
     };
@@ -73,7 +60,6 @@ export default function ReviewPrompt() {
       if (!res.ok) {
         const json = await res.json();
         if (res.status === 409) {
-          localStorage.setItem(`reviewed:${pending.listing_id}`, '1');
           localStorage.removeItem('pending_review');
           setSubmitted(true);
           return;
@@ -98,7 +84,7 @@ export default function ReviewPrompt() {
   }, [ submitted ]);
 
   if (!pending) return null;
-  
+
   return (
     <div className={styles.overlay} onClick={handleDismiss}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>

@@ -10,7 +10,7 @@ export async function proxy(request) {
     const hasVisited = request.cookies.get('has_visited');
     if (!hasVisited) {
       const response = NextResponse.redirect(new URL('/properties', request.url));
-      response.cookies.set('has_visited', 'true', { maxAge: 60 * 60 * 24 * 365 });
+      response.cookies.set('has_visited', 'true', { maxAge: 60 * 5 });
       return response;
     }
   }
