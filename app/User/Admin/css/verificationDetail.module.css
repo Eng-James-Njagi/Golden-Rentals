@@ -1,7 +1,7 @@
 .detailRoot {
    max-width: 900px;
    margin: 0 auto;
- 
+
    padding: 1.25rem 1rem;
    font-family: var(--font-geist-sans);
 }
@@ -137,22 +137,22 @@
 }
 
 .thumbStrip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  overflow-x: unset; 
+   display: grid;
+   grid-template-columns: repeat(4, 1fr);
+   gap: 6px;
+   overflow-x: unset;
 }
 
 .thumb {
-  position: relative;
-  width: 100%;
-  height: 54px;
-  border-radius: 4px;
-  overflow: hidden;
-  border: 2px solid transparent;
-  background: #f3f4f6;
-  cursor: pointer;
-  padding: 0;
+   position: relative;
+   width: 100%;
+   height: 54px;
+   border-radius: 4px;
+   overflow: hidden;
+   border: 2px solid transparent;
+   background: #f3f4f6;
+   cursor: pointer;
+   padding: 0;
 }
 
 .thumbActive {
@@ -261,6 +261,13 @@
    text-decoration: none;
    border: 2px solid #111827;
    letter-spacing: 0.02em;
+   box-shadow: 3px 3px 0px #111827;
+   transition: box-shadow 0.1s, transform 0.1s;
+}
+
+.contactBtn:hover {
+   box-shadow: 1px 1px 0px #111827;
+   transform: translate(2px, 2px);
 }
 
 /* ── Sub tabs ── */
@@ -393,40 +400,40 @@
 }
 
 .reviewsList {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+   display: flex;
+   flex-direction: column;
+   gap: 1rem;
 }
 
 .reviewItem {
-  padding: 12px 0;
-  border-bottom: 1px solid #f3f4f6;
+   padding: 12px 0;
+   border-bottom: 1px solid #f3f4f6;
 }
 
 .reviewItem:last-child {
-  border-bottom: none;
+   border-bottom: none;
 }
 
 .reviewHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-family:var(--font-geist-sans);
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   margin-bottom: 6px;
+   font-family: var(--font-geist-sans);
 }
 
 .reviewDate {
-  font-size: 0.78rem;
-  color: #9ca3af;
-  font-family:var(--font-geist-mono);
+   font-size: 0.78rem;
+   color: #9ca3af;
+   font-family: var(--font-geist-mono);
 }
 
 .reviewText {
-  font-size: 0.875rem;
-  font-family:var(--font-inter);
-  color: #374151;
-  line-height: 1.6;
-  margin: 0;
+   font-size: 0.875rem;
+   font-family: var(--font-inter);
+   color: #374151;
+   line-height: 1.6;
+   margin: 0;
 }
 
 /* ── Other listings carousel ── */
@@ -452,18 +459,21 @@
    height: 36px;
    border-radius: 50%;
    background: #F5A623;
-   border: none;
+   border: 2px solid #111827;
    cursor: pointer;
    display: flex;
    align-items: center;
    justify-content: center;
    flex-shrink: 0;
    color: #111827;
-   transition: opacity 0.15s;
+   box-shadow: 3px 3px 0px #111827;
+   transition: box-shadow 0.1s, transform 0.1s;
 }
 
 .carouselArrow:hover {
-   opacity: 0.85;
+   opacity: 1;
+   box-shadow: 1px 1px 0px #111827;
+   transform: translate(2px, 2px);
 }
 
 .carousel {
@@ -548,18 +558,21 @@
 .viewBtn {
    background: #2563eb;
    color: #fff;
-   border: none;
+   border: 2px solid #1d4ed8;
    border-radius: 4px;
    padding: 8px 0;
    font-size: 0.875rem;
    font-weight: 600;
    cursor: pointer;
    width: 100%;
-   transition: opacity 0.15s;
+   box-shadow: 3px 3px 0px #1d4ed8;
+   transition: box-shadow 0.1s, transform 0.1s;
 }
 
 .viewBtn:hover {
-   opacity: 0.88;
+   opacity: 1;
+   box-shadow: 1px 1px 0px #1d4ed8;
+   transform: translate(2px, 2px);
 }
 
 /* ── Lister details ── */
@@ -661,33 +674,39 @@
 .discardBtn {
    padding: 9px 24px;
    background: #e5e7eb;
-   border: none;
+   border: 2px solid #9ca3af;
    border-radius: 4px;
    font-size: 0.875rem;
    font-weight: 500;
    color: #374151;
    cursor: pointer;
-   transition: background 0.15s;
+   box-shadow: 3px 3px 0px #9ca3af;
+   transition: box-shadow 0.1s, transform 0.1s;
 }
 
 .discardBtn:hover {
    background: #d1d5db;
+   box-shadow: 1px 1px 0px #9ca3af;
+   transform: translate(2px, 2px);
 }
 
 .submitBtn {
    padding: 9px 24px;
    background: #dc2626;
-   border: none;
+   border: 2px solid #991b1b;
    border-radius: 4px;
    font-size: 0.875rem;
    font-weight: 600;
    color: #fff;
    cursor: pointer;
-   transition: opacity 0.15s;
+   box-shadow: 3px 3px 0px #991b1b;
+   transition: box-shadow 0.1s, transform 0.1s;
 }
 
 .submitBtn:hover {
-   opacity: 0.88;
+   opacity: 1;
+   box-shadow: 1px 1px 0px #991b1b;
+   transform: translate(2px, 2px);
 }
 
 /* ── Loading / error ── */

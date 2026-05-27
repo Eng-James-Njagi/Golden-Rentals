@@ -5,6 +5,7 @@ import PropertyTabs from '../../components/Details/detailsTab';
 import styles from '../../components/css/Details/detailsPage.module.css';
 import RelatedListingsCarousel from '../../components/Details/RelatedListingsCarousel'
 import ViewTracker from '../../components/Details/ViewTracker';
+import ReviewForm from '../../components/Details/reviewPrompt'
 
 async function getListing(id) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
@@ -76,6 +77,8 @@ export default async function PropertyDetailPage({ params }) {
 
           {/* Tabs: description + map */}
           <PropertyTabs listing={listing} />
+
+          <ReviewForm listing_id={listing.listing_id} listing_name={listing.property_name} />
 
           <RelatedListingsCarousel
             categoryName={listing.category_name}
