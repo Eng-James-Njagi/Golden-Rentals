@@ -85,7 +85,7 @@ export default function ReviewForm({ listing_id, listing_name }) {
 
       <textarea
         className={styles.textarea}
-        placeholder="Share your experience (optional)"
+        placeholder="Share your mind"
         value={reviewText}
         onChange={e => setReviewText(e.target.value)}
         maxLength={500}
