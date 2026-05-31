@@ -5,6 +5,7 @@ import styles from './css/Navigation/nav.module.css';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image'
+import { useNavVisibility } from '../hooks/useNavVisibility';
 import { createBrowserSupabaseClient } from '../../lib/supabase/client';
 
 const supabase = createBrowserSupabaseClient();
@@ -16,26 +17,15 @@ export default function Navbar() {
   const role = session?.user?.user_metadata?.role;
   const pathname = usePathname();
   const router = useRouter();
-  const [ visible, setVisible ] = useState(true);
-  const lastScrollY = useRef(0);
+  const visible = useNavVisibility();
 
   /* ── Scroll listener ── */
   useEffect(() => {
-    const handleScroll = () => {
-      const current = window.scrollY;
-      if (current < 10) {
-        setVisible(true);
-      } else if (current > lastScrollY.current) {
-        setVisible(false); // scrolling down
-      } else {
-        setVisible(true);  // scrolling up
-      }
-      lastScrollY.current = current;
-      setScrolled(current > 10);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
 
   /* ── Session: read once + subscribe to auth changes ── */
   useEffect(() => {
