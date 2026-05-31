@@ -47,7 +47,7 @@ export default function FeedbackBanner() {
                fontFamily: 'var(--font-geist-sans)',
                fontSize: '16px',
             }}>
-            Hi👋 we are currently in Beta Testing—
+            Hi👋 Welcome to Metro Rentals! We're live and improving — your feedback shapes what we build next.
             <button
                data-tally-open="KYkPYV"
                data-tally-overlay="1"
