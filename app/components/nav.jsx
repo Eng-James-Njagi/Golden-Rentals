@@ -77,7 +77,7 @@ export default function Navbar() {
             alt="Logo"
             src='/logo2.png' />
         </span>
-        <span className={styles.brandName}>Metro Rentals</span>
+        <span className={styles.brandName}>Pedu Rentals</span>
       </div>
 
       <ul className={`${styles.navLinks} ${menuOpen ? styles.navOpen : ''}`}>
