@@ -7,7 +7,7 @@ export default function AboutHeroSection() {
     <section className={styles.heroRoot}>
       {/* Title block */}
       <div className={styles.heroTitle}>
-        <h1 className={styles.heroHeading}>Golden Rental Systems</h1>
+        <h1 className={styles.heroHeading}>Pedu Rental Systems</h1>
         <p className={styles.heroSubheading}>Structured Listing Predictable Results</p>
       </div>
 
@@ -21,7 +21,7 @@ export default function AboutHeroSection() {
               <span /><span /><span />
             </div>
             <div className={styles.chromeBar}>
-              <span className={styles.chromeUrl}>goldenrentals.co.ke/properties</span>
+              <span className={styles.chromeUrl}>pedurentals.co.ke/properties</span>
             </div>
           </div>
 
