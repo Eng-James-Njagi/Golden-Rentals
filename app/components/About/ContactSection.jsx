@@ -76,7 +76,7 @@ export default function ContactSection() {
           <h2 className="ct-headline">Have Something Different In Mind</h2>
         </div>
         <p className="ct-subtitle">
-          At Golden Rentals, communication is direct and purposeful. Whether you are a tenant seeking clarification or a property owner ready to list, our team handles inquiries with precision and confidentiality.
+          At Pedu Rentals, communication is direct and purposeful. Whether you are a tenant seeking clarification or a property owner ready to list, our team handles inquiries with precision and confidentiality.
         </p>
       </FadeIn>
 
