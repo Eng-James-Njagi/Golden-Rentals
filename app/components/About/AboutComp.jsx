@@ -8,9 +8,9 @@ export default function AboutComp() {
 
       {/* Top — About block */}
       <div className={styles.aboutBlock}>
-        <h2 className={styles.blockHeading}>About Golden Rentals</h2>
+        <h2 className={styles.blockHeading}>About Pedu Rentals</h2>
         <p className={styles.bodyText}>
-          Golden Rentals was created to bring order and trust into the rental market. Too often,
+          Pedu Rentals was created to bring order and trust into the rental market. Too often,
           tenants struggle with unclear listings and unreliable contacts, while property owners lack
           a structured way to present and market their spaces. The system was conceived as a
           controlled marketplace where properties are clearly presented, identities are verified,
@@ -49,7 +49,7 @@ export default function AboutComp() {
       {/* Bottom — closing statement */}
       <div className={styles.closingBlock}>
         <p className={styles.closingText}>
-          Golden Rentals operates as a dependable environment where both tenants and property
+          Pedu Rentals operates as a dependable environment where both tenants and property
           providers interact within defined standards, creating a more reliable and
           user-centered rental experience.
         </p>
