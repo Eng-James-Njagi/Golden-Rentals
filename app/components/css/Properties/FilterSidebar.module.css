@@ -5,7 +5,7 @@
   border-right: 1px solid #e8e8ed;
   height: calc(100vh - 64px);
   position: sticky;
-  top: 64px;
+  top: 5px;
   overflow-y: auto;
   flex-shrink: 0;
   scrollbar-width: thin;
