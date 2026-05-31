@@ -83,7 +83,7 @@ export default function Footer() {
             <div className="footer-contact-list">
               <a href="tel:+254701999999" className="footer-contact-item">
                 <PhoneIcon />
-                <span>+254701 999 999</span>
+                <span>0798725928</span>
               </a>
               <a href="mailto:goldenrentalsystems@gmail.com" className="footer-contact-item">
                 <MailIcon />
@@ -124,7 +124,7 @@ export default function Footer() {
       {/* Divider + Copyright */}
       <div className="footer-bottom">
         <div className="footer-divider" />
-        <p className="footer-copy">MetroRentals©2026</p>
+        <p className="footer-copy">PeduRentals©2026</p>
       </div>
     </footer>
   );
