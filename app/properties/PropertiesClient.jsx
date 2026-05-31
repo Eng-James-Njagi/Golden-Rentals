@@ -116,6 +116,7 @@ export default function PropertiesClient() {
         <FilterSidebar onFilterChange={handleFilterChange} initialFilters={filters} />
 
         <main className={styles.mainContent}>
+          {/*
           <div className={styles.resultsHeader}>
             {!isLoading && pagination && (
               <p className={styles.resultsCount}>
@@ -123,6 +124,7 @@ export default function PropertiesClient() {
               </p>
             )}
           </div>
+          */}
 
           {error && (
             <div className={styles.errorState}>
