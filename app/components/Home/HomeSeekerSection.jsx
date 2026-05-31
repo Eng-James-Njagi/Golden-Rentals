@@ -45,7 +45,7 @@ export default function HomeSeekerSection() {
       </div>
 
       {/* Headline */}
-      <h2 className="po-headline">Find It.Love It.Live It</h2>
+      <h2 className="po-headline">Find It. Love It. Live It. </h2>
 
       {/* Subtitle */}
       <p className="po-subtitle">
