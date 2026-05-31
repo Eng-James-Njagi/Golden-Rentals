@@ -63,7 +63,7 @@ export default function Footer() {
               alt="Logo"
               src='/logo2.png' />
           </span>
-          <p className="footer-brand-name">Metro Rental<br />Systems</p>
+          <p className="footer-brand-name">Pedu Rental<br />Systems</p>
           <p className="footer-tagline">Structured Listings.</p>
           <p className="footer-tagline">Predictable Returns</p>
           <div className="footer-socials">
