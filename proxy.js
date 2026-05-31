@@ -3,15 +3,7 @@ import { NextResponse } from 'next/server';
 
 
 export async function proxy(request) {
-  const hasVisited = request.cookies.get('has_visited');
-
-  if (!hasVisited && request.nextUrl.pathname === '/') {
-    const response = NextResponse.redirect(new URL('/properties', request.url));
-    response.cookies.set('has_visited', 'true', { maxAge: 60 * 2 });
-    return response;
-  }
-
-
+ 
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
