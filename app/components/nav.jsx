@@ -52,10 +52,16 @@ export default function Navbar() {
   };
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
+  //
+  /* 
+  I swapped the pages where the home was / and properties was /properties
+  In the future to fully swap we have to switch the routes for everything but for now the system
 
+  Note for the developer
+  */
   const navLinks = [
-    { label: 'Home', path: '/' },
-    { label: 'Properties', path: '/properties' },
+    { label: 'Properties', path: '/' },
+    { label: 'Home', path: '/properties' },
     ...(role === 'admin' ? [ { label: 'Dashboard', path: '/User/Admin' } ] : []),
     ...(role === 'lister' ? [ { label: 'Dashboard', path: '/User/Lister' } ] : []),
     { label: 'About', path: '/about' },
