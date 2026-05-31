@@ -23,7 +23,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "City  Rentals System",
+  title: "Metro  Rentals System",
   description: "Lets find your future home",
 };
 
