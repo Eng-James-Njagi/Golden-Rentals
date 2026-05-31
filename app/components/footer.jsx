@@ -124,7 +124,7 @@ export default function Footer() {
       {/* Divider + Copyright */}
       <div className="footer-bottom">
         <div className="footer-divider" />
-        <p className="footer-copy">CityRentals©2026</p>
+        <p className="footer-copy">MetroRentals©2026</p>
       </div>
     </footer>
   );
