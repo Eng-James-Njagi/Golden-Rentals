@@ -1,4 +1,4 @@
-// app/api/Listing/[listing_id]/route.js
+// app/api/listings/[id]/route.js
 
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
