@@ -60,8 +60,8 @@ export default function Navbar() {
   Note for the developer
   */
   const navLinks = [
-    { label: 'Properties', path: '/' },
-    { label: 'Home', path: '/properties' },
+    { label: 'Home', path: '/' },
+    { label: 'Properties', path: '/properties' },
     ...(role === 'admin' ? [ { label: 'Dashboard', path: '/User/Admin' } ] : []),
     ...(role === 'lister' ? [ { label: 'Dashboard', path: '/User/Lister' } ] : []),
     { label: 'About', path: '/about' },
