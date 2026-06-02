@@ -32,6 +32,20 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+        <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Pedu Rentals",
+              "url": "https://www.pedurentals.com",
+              "logo": "https://www.pedurentals.com/logo2.png"
+            })
+          }}
+        />
+      </head>
       <body
         data-scroll-behavior='smooth'
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}>
