@@ -1,8 +1,8 @@
 .page {
-   min-height: 100vh;
+   min-height: calc(100vh - var(--page-top-offset));
+  margin-top: calc(var(--page-top-offset) - 26px);
    padding: 0 0 5px;
-   margin-top: 30px;
-   background-color:var(--background);
+   background-color: var(--background);
 }
 
 .container {
@@ -26,21 +26,22 @@
    color: var(--secondary);
    transition: all 0.4s ease;
 }
+
 .filterTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding:8px 0;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 8px;
+   padding: 8px 0;
 }
 
 .filterTag {
-  padding: 3px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--darkSecondary);
-  color: #444;
-  font-family: var(--font-inter);
+   padding: 3px 10px;
+   border-radius: 4px;
+   font-size: 12px;
+   font-weight: 500;
+   background: var(--darkSecondary);
+   color: #444;
+   font-family: var(--font-inter);
 }
 
 @media (max-width: 780px) {
