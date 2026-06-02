@@ -6,8 +6,12 @@ export default function Providers({ children }) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000,   // data is fresh for 5 min — no refetch on tab switch
-        gcTime: 10 * 60 * 1000,     // keep in cache 10 min after unmount
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        retry: 5,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
       }
     }
   }))

@@ -7,6 +7,7 @@ import PropertyCard from '../components/Properties/PropertyCard'
 import styles from '../components/css/Properties/properties.module.css'
 import ReviewPrompt from '../components/Properties/ReviewPrompt'
 import { useTrackVisit } from '@/app/hooks/useTrackVisit'
+import SearchBar from '../components/Properties/SearchBar'
 
 const PAGE_SIZE = 20
 
@@ -51,6 +52,8 @@ export default function PropertiesClient() {
   const [ filters, setFilters ] = useState(() => filtersFromParams(searchParams))
   const [ currentPage, setCurrentPage ] = useState(() => Number(searchParams.get('page') ?? 1))
   const [ wardPopup, setWardPopup ] = useState(null)
+  const [ searchLabel, setSearchLabel ] = useState(null)
+  const [ searchResults, setSearchResults ] = useState(null)
   const BUFFER_SIZE = 2  // pages per buffer block
 
   // which 40-block we're in (pages 1-2 = buffer 1, pages 3-4 = buffer 2, etc.)
@@ -59,10 +62,9 @@ export default function PropertiesClient() {
   // position within the buffer (0 or 1)
   const indexInBuffer = (currentPage - 1) % BUFFER_SIZE
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: [ 'listings', filters, bufferPage ],  // cache key — unique per filter+page combo
+  const { data, isLoading, error, isFetching, failureCount } = useQuery({
+    queryKey: [ 'listings', filters, bufferPage ],
     queryFn: () => fetchListings(filters, bufferPage),
-    // inherits staleTime/gcTime from provider defaults
   })
 
   const allData = data?.data ?? []
@@ -74,12 +76,17 @@ export default function PropertiesClient() {
     indexInBuffer * PAGE_SIZE + PAGE_SIZE
   )
 
+  const displayListings = searchResults !== null ? searchResults : listings
+  const isSearchActive = searchResults !== null
+
   // sync URL
   const syncUrl = (f, p) => {
     const params = filtersToParams(f, p)
     const qs = params.toString()
     router.replace(qs ? `?${qs}` : '?', { scroll: false })
   }
+
+
 
   const handleFilterChange = (updated) => {
     setFilters(updated)
@@ -91,6 +98,17 @@ export default function PropertiesClient() {
     setCurrentPage(page)
     syncUrl(filters, page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleSearchResults = (results, label) => {
+    setSearchResults(results)
+    setSearchLabel(label)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleSearchClear = () => {
+    setSearchResults(null)
+    setSearchLabel(null)
   }
 
   const pageNumbers = () => {
@@ -116,6 +134,15 @@ export default function PropertiesClient() {
         <FilterSidebar onFilterChange={handleFilterChange} initialFilters={filters} />
 
         <main className={styles.mainContent}>
+          <SearchBar
+            allData={allData}
+            onSearchResults={handleSearchResults}
+            onClear={handleSearchClear}
+          />
+          {searchLabel && (
+            <p className={styles.searchLabel}>{searchLabel}</p>
+          )}
+
           {/*
           <div className={styles.resultsHeader}>
             {!isLoading && pagination && (
@@ -125,6 +152,12 @@ export default function PropertiesClient() {
             )}
           </div>
           */}
+          {isFetching && failureCount > 0 && (
+            <div className={styles.retryState}>
+              <span className={styles.retrySpinner} />
+              Retrying... (attempt {failureCount + 1})
+            </div>
+          )}
 
           {error && (
             <div className={styles.errorState}>
@@ -140,19 +173,19 @@ export default function PropertiesClient() {
             </div>
           )}
 
-          {!isLoading && !error && listings.length === 0 && (
+          {!isLoading && !error && displayListings.length === 0 && (
             <div className={styles.emptyState}>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
                 <path d="M3 10V20M21 10V20M3 10h18M3 10L12 3l9 7" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
                 <rect x="9" y="14" width="6" height="6" stroke="currentColor" strokeWidth="1.2" />
               </svg>
-              <p>No properties match your filters.</p>
+              <p>{isSearchActive ? 'No properties found for your search.' : 'No properties match your filters.'}</p>
             </div>
           )}
 
-          {!isLoading && listings.length > 0 && (
+          {!isLoading && displayListings.length > 0 && (
             <div className={styles.grid}>
-              {listings.map(listing => (
+              {displayListings.map(listing => (
                 <PropertyCard
                   key={listing.listing_id}
                   listing={listing}
@@ -164,7 +197,7 @@ export default function PropertiesClient() {
             </div>
           )}
 
-          {!isLoading && totalPages > 1 && (
+          {!isLoading && !isSearchActive && totalPages > 1 && (
             <div className={styles.pagination}>
               <button
                 className={styles.pageBtn}

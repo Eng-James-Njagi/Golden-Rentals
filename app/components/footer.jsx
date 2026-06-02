@@ -83,7 +83,7 @@ export default function Footer() {
             <div className="footer-contact-list">
               <a href="tel:+254701999999" className="footer-contact-item">
                 <PhoneIcon />
-                <span>0798725928</span>
+                <span>0142770201</span>
               </a>
               <a href="mailto:goldenrentalsystems@gmail.com" className="footer-contact-item">
                 <MailIcon />
@@ -96,13 +96,17 @@ export default function Footer() {
             <h4 className="footer-col-heading">
               <span className="footer-heading-underline">Property</span> Type
             </h4>
+            {/*
+            Swapped from /properties to / due to the change in order of the 
+            page display
+             */}
             <ul className="footer-link-list">
-              <li><Link href="/properties?category_id=1" className="footer-link">Rental Apartments</Link></li>
-              <li><Link href="/properties?category_id=2" className="footer-link">Airbnbs</Link></li>
-              <li><Link href="/properties?category_id=3" className="footer-link">Commercial Spaces</Link></li>
-              <li><Link href="/properties?category_id=4" className="footer-link">Lodgings</Link></li>
-              <li><Link href="/properties?category_id=5" className="footer-link">Private Houses and Homes</Link></li>
-              <li><Link href="/properties?category_id=2" className="footer-link">Hostels</Link></li>
+              <li><Link href="/?category_id=1" className="footer-link">Rental Apartments</Link></li>
+              <li><Link href="/?category_id=2" className="footer-link">Airbnbs</Link></li>
+              <li><Link href="/?category_id=3" className="footer-link">Commercial Spaces</Link></li>
+              <li><Link href="/?category_id=4" className="footer-link">Lodgings</Link></li>
+              <li><Link href="/?category_id=5" className="footer-link">Private Houses and Homes</Link></li>
+              <li><Link href="/?category_id=2" className="footer-link">Hostels</Link></li>
             </ul>
           </div>
         </div>
