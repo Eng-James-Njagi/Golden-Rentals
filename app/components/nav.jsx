@@ -72,12 +72,12 @@ export default function Navbar() {
       <div className={styles.brand}>
         <span className={styles.logoIcon}>
           <Image
-            width={34}
-            height={34}
+            width={58}
+            height={60}
             alt="Logo"
             src='/logo2.png' />
         </span>
-        <span className={styles.brandName}>Pedu Rentals</span>
+        <span className={styles.brandName}>Pedu Rentals System</span>
       </div>
 
       <ul className={`${styles.navLinks} ${menuOpen ? styles.navOpen : ''}`}>
