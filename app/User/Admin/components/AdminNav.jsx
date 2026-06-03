@@ -1,6 +1,8 @@
 'use client'
 import { useState, useRef, useEffect } from "react";
 import styles from "../css/AdminNav.module.css";
+import { toast } from 'sonner'
+import { createBrowserSupabaseClient } from '@/lib/supabase/client'
 
 const TABS = [
   {
@@ -62,7 +64,7 @@ function NavList({ active, setActive, collapsed, indicatorTop, indicatorHeight, 
       {TABS.map((tab) => (
         <li key={tab.id}>
           <button
-            ref={(el) => (tabRefs.current[tab.id] = el)}
+            ref={(el) => (tabRefs.current[ tab.id ] = el)}
             className={`${styles.tab}${active === tab.id ? ` ${styles.tabActive}` : ""}`}
             onClick={() => { setActive(tab.id); onSelect?.(); }}
             title={collapsed ? tab.label : undefined}
@@ -78,12 +80,14 @@ function NavList({ active, setActive, collapsed, indicatorTop, indicatorHeight, 
   );
 }
 
+const supabase = createBrowserSupabaseClient()
+
 export default function AdminNav({ panels = {}, defaultTab = "dashboard" }) {
-  const [active, setActive] = useState(defaultTab);
-  const [collapsed, setCollapsed] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [indicatorTop, setIndicatorTop] = useState(0);
-  const [indicatorHeight, setIndicatorHeight] = useState(0);
+  const [ active, setActive ] = useState(defaultTab);
+  const [ collapsed, setCollapsed ] = useState(false);
+  const [ drawerOpen, setDrawerOpen ] = useState(false);
+  const [ indicatorTop, setIndicatorTop ] = useState(0);
+  const [ indicatorHeight, setIndicatorHeight ] = useState(0);
 
   const tabRefs = useRef({});
   const listRef = useRef(null);
@@ -93,19 +97,58 @@ export default function AdminNav({ panels = {}, defaultTab = "dashboard" }) {
   const activeTab = TABS.find((t) => t.id === active);
 
   useEffect(() => {
-    const el = tabRefs.current[active];
+    const el = tabRefs.current[ active ];
     const list = listRef.current;
     if (!el || !list) return;
     const listRect = list.getBoundingClientRect();
     const elRect = el.getBoundingClientRect();
     setIndicatorTop(elRect.top - listRect.top);
     setIndicatorHeight(elRect.height);
-  }, [active, collapsed]);
+  }, [ active, collapsed ]);
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [drawerOpen]);
+  }, [ drawerOpen ]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-notifications-toast')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        (payload) => {
+          const n = payload.new
+          const isPositive = [ 'new_account', 'new_listing', 'slots_purchase' ].includes(n.type)
+
+          let description = ''
+          if (n.type === 'new_listing') {
+            description = `${n.body?.property_name ?? 'A property'} · KSH ${Number(n.body?.price ?? 0).toLocaleString()}`
+          }
+          if (n.type === 'new_account') {
+            description = `${n.body?.username ?? 'A user'} · ${n.body?.organization ?? ''}`
+          }
+          if (n.type === 'listing_deleted') {
+            description = `${n.body?.property_name ?? 'A property'} was removed`
+          }
+          if (n.type === 'account_deleted') {
+            description = `${n.body?.username ?? 'A user'} account was removed`
+          }
+
+          toast(n.title, {
+            description: description
+              ? `${description} — visit Account tab for details`
+              : 'Visit the Account tab for details',
+            duration: 6000,
+            position: 'top-right',
+            icon: isPositive ? '✅' : '🔴',
+          })
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   return (
     <div className={`${styles.root}${collapsed ? ` ${styles.rootCollapsed}` : ""}`}>
@@ -156,7 +199,7 @@ export default function AdminNav({ panels = {}, defaultTab = "dashboard" }) {
           <h1 className={styles.pageTitle}>{activeTab?.label}</h1>
         </div>
         <div className={styles.panelWrap}>
-          {panels[active] ?? <DefaultPanel label={activeTab?.label} />}
+          {panels[ active ] ?? <DefaultPanel label={activeTab?.label} />}
         </div>
       </main>
 
