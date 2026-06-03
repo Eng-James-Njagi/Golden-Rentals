@@ -135,7 +135,7 @@ async function handleAddSlots(request, body) {
             BusinessShortCode: DARAJA_SHORTCODE,
             Password: password,
             Timestamp: timestamp,
-            TransactionType: 'CustomerBuyGoodsOnline',
+            TransactionType: 'CustomerPayBillOnline',
             Amount: amount,
             PartyA: phone,
             PartyB: DARAJA_SHORTCODE,

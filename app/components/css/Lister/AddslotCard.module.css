@@ -148,6 +148,7 @@
 .errorText {
   margin: 0;
   font-size: 0.75rem;
+  font-family:var(--font-inter);
   color: var(--color-danger, #c0392b);
 }
 
@@ -204,6 +205,7 @@
   margin: 0;
   font-size: 0.82rem;
   color: var(--color-text, #333);
+  font-family:var(--font-inter);
   line-height: 1.5;
 }
 
@@ -227,6 +229,7 @@
   margin: 0;
   font-size: 0.82rem;
   color: var(--color-text, #444);
+  font-family:var(--font-inter);
 }
 
 /* ── spinner ── */
