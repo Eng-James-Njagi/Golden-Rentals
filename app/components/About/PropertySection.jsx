@@ -94,7 +94,7 @@ export default function PropertyOwnerSection() {
 
       {/* Bottom Buttons */}
       <div className="po-bottom-btns">
-        <Link href="/properties">
+        <Link href="/">
           <button className="po-btn-filled">Browse Properties</button>
         </Link>
         <Link href="/Auth">

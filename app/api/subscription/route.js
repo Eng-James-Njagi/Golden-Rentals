@@ -16,14 +16,14 @@ const DARAJA_CALLBACK_URL = process.env.DARAJA_CALLBACK_URL ?? '';
 // false → increment Slots only, skip all payment tables
 // true  → full Daraja STK push + Pending_Payments + Payment_Ledger
 async function isMpesaEnabled(supabase) {
-  const { data, error } = await supabase
-    .from('system_settings')
-    .select('value')
-    .eq('action', 'mpesa_enabled')
-    .single();
- 
-  if (error || !data) return false;
-  return data.value === 'true';
+   const { data, error } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('action', 'mpesa_enabled')
+      .single();
+
+   if (error || !data) return false;
+   return data.value === 'true';
 }
 
 
@@ -83,8 +83,8 @@ export async function GET(request) {
 
    if (countErr) return NextResponse.json({ error: countErr.message, code: countErr.code }, { status: 500 });
 
-   const slots    = lister?.Slots   ?? 0;
-   const listings = listingCount    ?? 0;
+   const slots = lister?.Slots ?? 0;
+   const listings = listingCount ?? 0;
 
    return NextResponse.json({ slots, listings, can_add: slots > listings });
 }
@@ -102,10 +102,10 @@ async function handleAddSlots(request, body) {
    }
 
    const quantity = Math.max(1, Math.min(20, parseInt(body.quantity ?? 1, 10)));
-   const mpesaEnabled = await isMpesaEnabled(supabase);  
+   const mpesaEnabled = await isMpesaEnabled(supabase);
 
    // ── Simulated: increment only, no payment tables touched ──
-   if (!mpesaEnabled)  {
+   if (!mpesaEnabled) {
       const result = await incrementSlots(supabase, user.id, quantity);
       if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
 
@@ -135,7 +135,7 @@ async function handleAddSlots(request, body) {
             BusinessShortCode: DARAJA_SHORTCODE,
             Password: password,
             Timestamp: timestamp,
-            TransactionType: 'CustomerPayBillOnline',
+            TransactionType: 'CustomerBuyGoodsOnline',
             Amount: amount,
             PartyA: phone,
             PartyB: DARAJA_SHORTCODE,

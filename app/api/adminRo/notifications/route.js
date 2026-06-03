@@ -42,6 +42,7 @@ export async function PATCH(request) {
     if (authError || !user || user.user_metadata?.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
 
     const { ids, all } = await request.json();
 
