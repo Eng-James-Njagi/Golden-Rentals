@@ -21,7 +21,13 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data });
+    const parsed = (data ?? []).map(n => ({
+      ...n,
+      body: typeof n.body === 'string' ? JSON.parse(n.body) : n.body,
+    }))
+
+    return NextResponse.json({ data: parsed });
+
 
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
