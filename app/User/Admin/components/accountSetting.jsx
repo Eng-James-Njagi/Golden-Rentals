@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import styles from '../css/accountSettings.module.css';
 import { toast } from 'sonner';
+import NotificationsSection from './NotificationSection'
 
 const Icon = ({ d }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
@@ -19,7 +20,7 @@ const icons = {
 
 const FieldDisplay = ({ icon, label, value, masked = false }) => (
   <div className={styles.adminFieldRow}>
-    <Icon d={icons[icon]} />
+    <Icon d={icons[ icon ]} />
     <div className={styles.adminFieldBody}>
       <span className={styles.adminFieldLabel}>{label}</span>
       <span className={`${styles.adminFieldValue} ${masked ? styles.adminMasked : ''}`}>
@@ -31,7 +32,7 @@ const FieldDisplay = ({ icon, label, value, masked = false }) => (
 
 const FieldEdit = ({ icon, label, name, type = 'text', value, onChange, hint }) => (
   <div className={styles.adminFieldRow}>
-    <Icon d={icons[icon]} />
+    <Icon d={icons[ icon ]} />
     <div className={styles.adminFieldBody}>
       <label className={styles.adminFieldLabel} htmlFor={name}>{label}</label>
       <input
@@ -67,12 +68,12 @@ const Section = ({ title, children, editing, onEdit, onSave, onCancel, saved, lo
 
 // ── System Features ──────────────────────────────────────────
 function SystemFeatures() {
-  const [mpesa, setMpesa]         = useState(false);
-  const [editDays, setEditDays]   = useState(5);
-  const [draftDays, setDraftDays] = useState(5);
-  const [editingDays, setEditingDays] = useState(false);
-  const [loading, setLoading]     = useState(true);
-  const [saving, setSaving]       = useState({ mpesa: false, days: false });
+  const [ mpesa, setMpesa ] = useState(false);
+  const [ editDays, setEditDays ] = useState(5);
+  const [ draftDays, setDraftDays ] = useState(5);
+  const [ editingDays, setEditingDays ] = useState(false);
+  const [ loading, setLoading ] = useState(true);
+  const [ saving, setSaving ] = useState({ mpesa: false, days: false });
 
   useEffect(() => {
     fetch('/api/adminRo/settings')
@@ -209,17 +210,17 @@ function SystemFeatures() {
 const EMPTY = { username: '', email: '' };
 
 export default function AdminAccountSettings() {
-  const [data, setData]       = useState(EMPTY);
-  const [fetching, setFetching] = useState(true);
-  const [error, setError]     = useState(null);
+  const [ data, setData ] = useState(EMPTY);
+  const [ fetching, setFetching ] = useState(true);
+  const [ error, setError ] = useState(null);
 
-  const [accountDraft, setAccountDraft]   = useState({ username: '' });
-  const [securityDraft, setSecurityDraft] = useState({ email: '', password: '' });
+  const [ accountDraft, setAccountDraft ] = useState({ username: '' });
+  const [ securityDraft, setSecurityDraft ] = useState({ email: '', password: '' });
 
-  const [editing, setEditing] = useState({ account: false, security: false });
-  const [loading, setLoading] = useState({ account: false, security: false });
-  const [saved, setSaved]     = useState({ account: false, security: false });
-  const [dirty, setDirty]     = useState({ account: false, security: false });
+  const [ editing, setEditing ] = useState({ account: false, security: false });
+  const [ loading, setLoading ] = useState({ account: false, security: false });
+  const [ saved, setSaved ] = useState({ account: false, security: false });
+  const [ dirty, setDirty ] = useState({ account: false, security: false });
 
   const fetchAccount = () =>
     fetch('/api/adminRo/account')
@@ -241,41 +242,41 @@ export default function AdminAccountSettings() {
 
   const handleAccountChange = useCallback(e => {
     const { name, value } = e.target;
-    setAccountDraft(prev => ({ ...prev, [name]: value }));
+    setAccountDraft(prev => ({ ...prev, [ name ]: value }));
     setDirty(prev => ({ ...prev, account: true }));
   }, []);
 
   const handleSecurityChange = useCallback(e => {
     const { name, value } = e.target;
-    setSecurityDraft(prev => ({ ...prev, [name]: value }));
+    setSecurityDraft(prev => ({ ...prev, [ name ]: value }));
     setDirty(prev => ({ ...prev, security: true }));
   }, []);
 
   const startEdit = section => {
-    if (section === 'account')  setAccountDraft({ username: data.username });
+    if (section === 'account') setAccountDraft({ username: data.username });
     if (section === 'security') setSecurityDraft({ email: data.email, password: '' });
-    setEditing(prev => ({ ...prev, [section]: true }));
-    setDirty(prev => ({ ...prev, [section]: false }));
+    setEditing(prev => ({ ...prev, [ section ]: true }));
+    setDirty(prev => ({ ...prev, [ section ]: false }));
     setError(null);
   };
 
   const cancelEdit = section => {
-    setEditing(prev => ({ ...prev, [section]: false }));
-    setDirty(prev => ({ ...prev, [section]: false }));
+    setEditing(prev => ({ ...prev, [ section ]: false }));
+    setDirty(prev => ({ ...prev, [ section ]: false }));
     setError(null);
   };
 
   const save = async (section) => {
-    setLoading(prev => ({ ...prev, [section]: true }));
+    setLoading(prev => ({ ...prev, [ section ]: true }));
     setError(null);
 
     const body = section === 'account'
       ? { type: 'account', username: accountDraft.username }
       : {
-          type:     'security',
-          email:    securityDraft.email.trim()    || null,
-          password: securityDraft.password.trim() || null,
-        };
+        type: 'security',
+        email: securityDraft.email.trim() || null,
+        password: securityDraft.password.trim() || null,
+      };
 
     try {
       const res = await fetch('/api/adminRo/account', {
@@ -288,8 +289,8 @@ export default function AdminAccountSettings() {
       if (!res.ok) throw new Error(json.error ?? 'Failed to save.');
 
       await fetchAccount();
-      setEditing(prev => ({ ...prev, [section]: false }));
-      setDirty(prev => ({ ...prev, [section]: false }));
+      setEditing(prev => ({ ...prev, [ section ]: false }));
+      setDirty(prev => ({ ...prev, [ section ]: false }));
 
       if (section === 'security') {
         toast.success('Changes saved. Check your Gmail for a confirmation link.');
@@ -300,7 +301,7 @@ export default function AdminAccountSettings() {
     } catch (err) {
       toast.error(err.message);
     } finally {
-      setLoading(prev => ({ ...prev, [section]: false }));
+      setLoading(prev => ({ ...prev, [ section ]: false }));
     }
   };
 
@@ -367,6 +368,11 @@ export default function AdminAccountSettings() {
 
       {/* ── System Features — full width ── */}
       <SystemFeatures />
+
+      {/* ── Notifications — full width ── */}
+      <div style={{ marginTop: '1.5rem' }}>
+        <NotificationsSection />
+      </div>
 
     </div>
   );
