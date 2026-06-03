@@ -22,7 +22,8 @@
    justify-content: center;
    background: var(--background);
    padding: 20px 16px;
-   margin-top: 64px;
+   min-height: calc(100vh - var(--page-top-offset));
+   margin-top: calc(var(--page-top-offset) - 68px);
 }
 
 /* ── CARD ── */

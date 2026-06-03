@@ -18,7 +18,8 @@
 
   display: flex;
   width: 100%;
-  min-height: 100px;
+  min-height: calc(100vh - var(--page-top-offset));
+  margin-top: calc(var(--page-top-offset) - 68px);
 }
 
 /* ── Sidebar ── */

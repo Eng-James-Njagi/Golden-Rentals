@@ -1,6 +1,6 @@
 .page {
    min-height: calc(100vh - var(--page-top-offset));
-  margin-top: calc(var(--page-top-offset) - 26px);
+   margin-top: calc(var(--page-top-offset) - 26px);
    padding: 0 0 5px;
    background-color: var(--background);
 }
