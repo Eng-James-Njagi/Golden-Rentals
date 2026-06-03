@@ -5,8 +5,6 @@ import styles from '../css/accountSettings.module.css'
 
 const supabase = createBrowserSupabaseClient()
 
-// ── Helpers ──────────────────────────────────────────────────
-
 const POSITIVE_TYPES = ['new_account', 'new_listing', 'slots_purchase']
 
 function isPositive(type) {
@@ -28,7 +26,6 @@ function groupByThreeDays(notifications) {
   const groups = {}
   notifications.forEach(n => {
     const date = new Date(n.created_at)
-    // floor to 3-day bucket
     const bucket = Math.floor(date.getTime() / (3 * 24 * 60 * 60 * 1000))
     if (!groups[bucket]) groups[bucket] = []
     groups[bucket].push(n)
@@ -45,8 +42,6 @@ function bucketLabel(items) {
   if (fmt(oldest) === fmt(newest)) return fmt(newest)
   return `${fmt(oldest)} — ${fmt(newest)}`
 }
-
-// ── Icons ────────────────────────────────────────────────────
 
 function GreenTick() {
   return (
@@ -71,10 +66,8 @@ function RedX() {
   )
 }
 
-// ── Single notification row ───────────────────────────────────
-
 function NotificationRow({ notification, onMarkRead }) {
-  const { type, title, body, read, created_at } = notification
+  const { type, title, body, read } = notification
   const positive = isPositive(type)
 
   const renderBody = () => {
@@ -123,8 +116,6 @@ function NotificationRow({ notification, onMarkRead }) {
   )
 }
 
-// ── Grouped banner ────────────────────────────────────────────
-
 function GroupedBanner({ items, onMarkRead }) {
   const [expanded, setExpanded] = useState(false)
   const unread = items.filter(n => !n.read).length
@@ -142,10 +133,7 @@ function GroupedBanner({ items, onMarkRead }) {
         </div>
         <div className={styles.notifGroupActions}>
           {unread > 0 && (
-            <button
-              className={styles.notifMarkBtn}
-              onClick={() => onMarkRead(ids)}
-            >
+            <button className={styles.notifMarkBtn} onClick={() => onMarkRead(ids)}>
               Mark all read
             </button>
           )}
@@ -160,14 +148,40 @@ function GroupedBanner({ items, onMarkRead }) {
       {expanded && (
         <div className={styles.notifGroupItems}>
           {items.map(n => (
-            <NotificationRow
-              key={n.id}
-              notification={n}
-              onMarkRead={onMarkRead}
-            />
+            <NotificationRow key={n.id} notification={n} onMarkRead={onMarkRead} />
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ── History modal ─────────────────────────────────────────────
+
+function HistoryModal({ notifications, onClose }) {
+  const groups = groupByThreeDays(notifications)
+
+  return (
+    <div className={styles.notifModalOverlay} onClick={onClose}>
+      <div className={styles.notifModal} onClick={e => e.stopPropagation()}>
+        <div className={styles.notifModalHeader}>
+          <span className={styles.notifModalTitle}>Notification History</span>
+          <button className={styles.notifModalClose} onClick={onClose}>&#x2715;</button>
+        </div>
+        <div className={styles.notifModalBody}>
+          {notifications.length === 0 && (
+            <p className={styles.notifEmpty}>No read notifications yet</p>
+          )}
+          {groups.map((items, i) => (
+            <div key={i} className={styles.notifHistoryGroup}>
+              <div className={styles.notifDivider}>{bucketLabel(items)}</div>
+              {items.map(n => (
+                <NotificationRow key={n.id} notification={n} onMarkRead={() => {}} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
@@ -178,8 +192,11 @@ export default function NotificationsSection() {
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
   const [collapsed, setCollapsed] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unreadNotifications = notifications.filter(n => !n.read)
+  const readNotifications = notifications.filter(n => n.read)
+  const unreadCount = unreadNotifications.length
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -193,12 +210,10 @@ export default function NotificationsSection() {
     }
   }, [])
 
-  // initial fetch
   useEffect(() => {
     fetchNotifications()
   }, [fetchNotifications])
 
-  // real-time subscription
   useEffect(() => {
     const channel = supabase
       .channel('notifications-channel')
@@ -208,12 +223,10 @@ export default function NotificationsSection() {
         () => { fetchNotifications() }
       )
       .subscribe()
-
     return () => { supabase.removeChannel(channel) }
   }, [fetchNotifications])
 
   const handleMarkRead = useCallback(async (ids) => {
-    // optimistic update
     setNotifications(prev =>
       prev.map(n => ids.includes(n.id) ? { ...n, read: true } : n)
     )
@@ -225,7 +238,7 @@ export default function NotificationsSection() {
       })
     } catch (err) {
       console.error('Failed to mark read:', err)
-      fetchNotifications() // revert on failure
+      fetchNotifications()
     }
   }, [fetchNotifications])
 
@@ -243,83 +256,72 @@ export default function NotificationsSection() {
     }
   }, [fetchNotifications])
 
-  // decide render mode
   const showGrouped = unreadCount > 5
-  const groups = showGrouped ? groupByThreeDays(notifications.filter(n => !n.read)) : []
-  const readNotifications = notifications.filter(n => n.read)
+  const groups = showGrouped ? groupByThreeDays(unreadNotifications) : []
 
   return (
-    <div className={styles.adminSection}>
-      <div className={styles.adminSectionHeader}>
-        <span className={styles.adminSectionTitle}>
-          Notifications
-          {unreadCount > 0 && (
-            <span className={styles.notifBadge}>{unreadCount}</span>
-          )}
-        </span>
-        <div className={styles.adminHeaderActions}>
-          {unreadCount > 0 && !collapsed && (
-            <button className={styles.adminEditBtn} onClick={handleMarkAllRead}>
-              Mark all read
+    <>
+      <div className={styles.adminSection}>
+        <div className={styles.adminSectionHeader}>
+          <span className={styles.adminSectionTitle}>
+            Notifications
+            {unreadCount > 0 && (
+              <span className={styles.notifBadge}>{unreadCount}</span>
+            )}
+          </span>
+          <div className={styles.adminHeaderActions}>
+            {readNotifications.length > 0 && (
+              <button className={styles.adminEditBtn} onClick={() => setShowHistory(true)}>
+                View history
+              </button>
+            )}
+            {unreadCount > 0 && !collapsed && (
+              <button className={styles.adminEditBtn} onClick={handleMarkAllRead}>
+                Mark all read
+              </button>
+            )}
+            <button
+              className={styles.adminEditBtn}
+              onClick={() => setCollapsed(p => !p)}
+            >
+              {collapsed ? 'Expand' : 'Collapse'}
             </button>
-          )}
-          <button
-            className={styles.adminEditBtn}
-            onClick={() => setCollapsed(p => !p)}
-          >
-            {collapsed ? 'Expand' : 'Collapse'}
-          </button>
+          </div>
         </div>
+
+        {!collapsed && (
+          <div className={styles.adminSectionBody}>
+            {loading && (
+              <p className={styles.adminLoading}>Loading notifications…</p>
+            )}
+
+            {!loading && unreadCount === 0 && (
+              <p className={styles.notifEmpty}>No new notifications yet</p>
+            )}
+
+            {!loading && unreadCount > 0 && (
+              <div className={styles.notifList}>
+                {showGrouped ? (
+                  groups.map((items, i) => (
+                    <GroupedBanner key={i} items={items} onMarkRead={handleMarkRead} />
+                  ))
+                ) : (
+                  unreadNotifications.map(n => (
+                    <NotificationRow key={n.id} notification={n} onMarkRead={handleMarkRead} />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {!collapsed && (
-        <div className={styles.adminSectionBody}>
-          {loading && (
-            <p className={styles.adminLoading}>Loading notifications…</p>
-          )}
-
-          {!loading && notifications.length === 0 && (
-            <p className={styles.notifEmpty}>No new notifications yet</p>
-          )}
-
-          {!loading && notifications.length > 0 && (
-            <div className={styles.notifList}>
-              {/* unread — grouped or individual */}
-              {showGrouped ? (
-                groups.map((items, i) => (
-                  <GroupedBanner
-                    key={i}
-                    items={items}
-                    onMarkRead={handleMarkRead}
-                  />
-                ))
-              ) : (
-                notifications.filter(n => !n.read).map(n => (
-                  <NotificationRow
-                    key={n.id}
-                    notification={n}
-                    onMarkRead={handleMarkRead}
-                  />
-                ))
-              )}
-
-              {/* read notifications always shown individually below */}
-              {readNotifications.length > 0 && (
-                <>
-                  <div className={styles.notifDivider}>Read</div>
-                  {readNotifications.map(n => (
-                    <NotificationRow
-                      key={n.id}
-                      notification={n}
-                      onMarkRead={handleMarkRead}
-                    />
-                  ))}
-                </>
-              )}
-            </div>
-          )}
-        </div>
+      {showHistory && (
+        <HistoryModal
+          notifications={readNotifications}
+          onClose={() => setShowHistory(false)}
+        />
       )}
-    </div>
+    </>
   )
 }
