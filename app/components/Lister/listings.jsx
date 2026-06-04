@@ -144,7 +144,7 @@ export default function MyListings({ slotData, onSlotAdded }) {
                   <>
                      <span className={styles.metaDivider}>·</span>
                      <span className={`${styles.count} ${!slotData.can_add ? styles.countWarning : ''}`}>
-                        {slotData.slots} slot{slotData.slots !== 1 ? 's' : ''}
+                        {slotData.slots} listing slot{slotData.slots !== 1 ? 's' : ''}
                      </span>
                   </>
                )}

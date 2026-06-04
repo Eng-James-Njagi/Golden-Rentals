@@ -1,6 +1,8 @@
 'use client'
 import React, { useState, useRef, useEffect } from "react";
 import "../css/About/ContactSection.css";
+import { toast } from 'sonner';
+
 
 const categories = [
   {
@@ -29,7 +31,7 @@ function FadeIn({ children, delay = 0 }) {
     const el = ref.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
+      ([ entry ]) => {
         if (entry.isIntersecting) {
           el.style.transitionDelay = `${delay}s`;
           el.classList.add("ct-visible");
@@ -40,7 +42,7 @@ function FadeIn({ children, delay = 0 }) {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [delay]);
+  }, [ delay ]);
   return (
     <div className="ct-fade" ref={ref}>
       {children}
@@ -49,23 +51,45 @@ function FadeIn({ children, delay = 0 }) {
 }
 
 export default function ContactSection() {
-  const [form, setForm] = useState({ email: "", body: "" });
-  const [status, setStatus] = useState(null); // null | "sending" | "sent"
+  const [ form, setForm ] = useState({ email: "", body: "" });
+  const [ status, setStatus ] = useState(null); // null | "sending" | "sent"
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setForm((prev) => ({ ...prev, [ e.target.name ]: e.target.value }));
   };
 
-   const isValidEmail = (email) =>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
-  const handleSend = () => {
-    if (!form.email || !form.body|| !isValidEmail(form.email)) return;
-    setStatus("sending");
-    setTimeout(() => {
-      setStatus("sent");
-      setForm({ email: "", body: "" });
-    }, 1200);
-  };
+
+
+const handleSend = async () => {
+  if (!form.email || !isValidEmail(form.email)) {
+    toast.error('Enter a valid email address.');
+    return;
+  }
+  if (!form.body.trim()) {
+    toast.error('Message cannot be empty.');
+    return;
+  }
+  setStatus("sending");
+
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error ?? 'failed');
+    setStatus("sent");
+    setForm({ email: "", body: "" });
+    toast.success('Message sent.');
+  } catch (err) {
+    console.error('contact error:', err.message);
+    toast.error('Failed to send. Try again.');
+    setStatus(null);
+  }
+};
 
   return (
     <section className="ct-section">

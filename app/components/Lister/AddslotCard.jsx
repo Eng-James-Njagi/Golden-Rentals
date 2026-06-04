@@ -11,6 +11,7 @@ export default function AddSlotCard({ onSlotAdded }) {
    const [ quantity, setQuantity ] = useState(1);
    const [ step, setStep ] = useState('idle'); // idle | confirm | processing | success | error
    const [ errorMsg, setErrorMsg ] = useState('');
+   const [ open, setOpen ] = useState(false);
 
    useEffect(() => {
       fetch('/api/adminRo/settings')
@@ -90,113 +91,101 @@ export default function AddSlotCard({ onSlotAdded }) {
    return (
       <div className={styles.card}>
 
-         <span className={styles.badge}>
-            {mpesaEnabled ? 'M-Pesa' : 'Simulated'}
-         </span>
+         <div className={styles.cardHeader} onClick={() => setOpen(o => !o)}>
+            <div className={styles.headerLeft}>
+               <div className={styles.iconWrap} aria-hidden>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                     <rect x="2" y="7" width="20" height="14" rx="2" />
+                     <path d="M16 7V5a2 2 0 0 0-4 0v2M12 12v4M10 14h4" />
+                  </svg>
+               </div>
+               <div>
+                  <h3 className={styles.heading}>Add Listing Slots</h3>
+                  <p className={styles.sub}>KES {SLOT_PRICE_KES.toLocaleString()} per listing slot · pay via M-Pesa</p>
+               </div>
+            </div>
 
-         <div className={styles.iconWrap} aria-hidden>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-               <rect x="2" y="7" width="20" height="14" rx="2" />
-               <path d="M16 7V5a2 2 0 0 0-4 0v2M12 12v4M10 14h4" />
-            </svg>
+            <div className={styles.headerRight}>
+               <span className={styles.badge}>{mpesaEnabled ? 'M-Pesa' : 'Simulated'}</span>
+               <svg
+                  className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`}
+                  width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+               >
+                  <polyline points="6 9 12 15 18 9" />
+               </svg>
+            </div>
          </div>
 
-         <h3 className={styles.heading}>Add Listing Slots</h3>
-         <p className={styles.sub}>
-            KES {SLOT_PRICE_KES.toLocaleString()} per slot · pay via M-Pesa
-         </p>
+         {open && (
+            <div className={styles.cardBody}>
 
-         {/* ── idle / error ── */}
-         {(step === 'idle' || step === 'error') && (
-            <div className={styles.form}>
-
-               {mpesaEnabled && (
-                  <div className={styles.field}>
-                     <label className={styles.label} htmlFor="slot-phone">
-                        Safaricom number
-                     </label>
-                     <input
-                        id="slot-phone"
-                        className={styles.input}
-                        type="tel"
-                        placeholder="07XX XXX XXX"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        maxLength={13}
-                     />
+               {(step === 'idle' || step === 'error') && (
+                  <div className={styles.form}>
+                     {mpesaEnabled && (
+                        <div className={styles.field}>
+                           <label className={styles.label} htmlFor="slot-phone">Safaricom number</label>
+                           <input
+                              id="slot-phone" className={styles.input} type="tel"
+                              placeholder="07XX XXX XXX" value={phone}
+                              onChange={(e) => setPhone(e.target.value)} maxLength={13}
+                           />
+                        </div>
+                     )}
+                     <div className={styles.field}>
+                        <label className={styles.label} htmlFor="slot-qty">Slots</label>
+                        <div className={styles.stepper}>
+                           <button className={styles.stepBtn} onClick={() => setQuantity(q => Math.max(1, q - 1))} aria-label="Decrease">−</button>
+                           <span className={styles.stepVal}>{quantity}</span>
+                           <button className={styles.stepBtn} onClick={() => setQuantity(q => Math.min(20, q + 1))} aria-label="Increase">+</button>
+                        </div>
+                     </div>
+                     {errorMsg && <p className={styles.errorText}>{errorMsg}</p>}
+                     <button className={styles.primaryBtn} onClick={handleInitiate}>
+                        {mpesaEnabled ? `You get 2 free slots. Need more? KES ${totalKes.toLocaleString()} each` : `Add ${quantity} slot${quantity > 1 ? 's' : ''} (simulated)`}
+                     </button>
                   </div>
                )}
 
-               <div className={styles.field}>
-                  <label className={styles.label} htmlFor="slot-qty">Slots</label>
-                  <div className={styles.stepper}>
-                     <button
-                        className={styles.stepBtn}
-                        onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                        aria-label="Decrease"
-                     >−</button>
-                     <span className={styles.stepVal}>{quantity}</span>
-                     <button
-                        className={styles.stepBtn}
-                        onClick={() => setQuantity(q => Math.min(20, q + 1))}
-                        aria-label="Increase"
-                     >+</button>
+               {step === 'confirm' && (
+                  <div className={styles.confirmBlock}>
+                     <p className={styles.confirmMsg}>
+                        {mpesaEnabled
+                           ? <><strong>KES {totalKes.toLocaleString()}</strong> STK push to <strong>{phone}</strong> for {quantity} slot{quantity > 1 ? 's' : ''}?</>
+                           : <>Add <strong>{quantity}</strong> slot{quantity > 1 ? 's' : ''} to your account (no charge)?</>}
+                     </p>
+                     <div className={styles.confirmRow}>
+                        <button className={styles.primaryBtn} onClick={handleConfirm}>
+                           {mpesaEnabled ? 'Confirm & Pay' : 'Confirm'}
+                        </button>
+                        <button className={styles.ghostBtn} onClick={reset}>Cancel</button>
+                     </div>
                   </div>
-               </div>
+               )}
 
-               {errorMsg && <p className={styles.errorText}>{errorMsg}</p>}
+               {step === 'processing' && (
+                  <div className={styles.statusBlock}>
+                     <span className={styles.spinner} aria-label="Processing" />
+                     <p className={styles.statusText}>
+                        {mpesaEnabled ? 'STK push sent — approve on your phone' : 'Writing to database…'}
+                     </p>
+                  </div>
+               )}
 
-               <button className={styles.primaryBtn} onClick={handleInitiate}>
-                  {mpesaEnabled
-                     ? `Pay KES ${totalKes.toLocaleString()}`
-                     : `Add ${quantity} slot${quantity > 1 ? 's' : ''} (simulated)`}
-               </button>
-            </div>
-         )}
+               {step === 'success' && (
+                  <div className={styles.statusBlock}>
+                     <svg className={styles.successIcon} width="32" height="32" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" strokeWidth="1.8"
+                        strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="7 12 10.5 15.5 17 9" />
+                     </svg>
+                     <p className={styles.statusText}>{quantity} slot{quantity > 1 ? 's' : ''} added successfully.</p>
+                     <button className={styles.ghostBtn} onClick={reset}>Add more</button>
+                  </div>
+               )}
 
-         {/* ── confirm ── */}
-         {step === 'confirm' && (
-            <div className={styles.confirmBlock}>
-               <p className={styles.confirmMsg}>
-                  {mpesaEnabled
-                     ? <><strong>KES {totalKes.toLocaleString()}</strong> STK push to <strong>{phone}</strong> for {quantity} slot{quantity > 1 ? 's' : ''}?</>
-                     : <>Add <strong>{quantity}</strong> slot{quantity > 1 ? 's' : ''} to your account (no charge)?</>}
-               </p>
-               <div className={styles.confirmRow}>
-                  <button className={styles.primaryBtn} onClick={handleConfirm}>
-                     {mpesaEnabled ? 'Confirm & Pay' : 'Confirm'}
-                  </button>
-                  <button className={styles.ghostBtn} onClick={reset}>Cancel</button>
-               </div>
-            </div>
-         )}
-
-         {/* ── processing ── */}
-         {step === 'processing' && (
-            <div className={styles.statusBlock}>
-               <span className={styles.spinner} aria-label="Processing" />
-               <p className={styles.statusText}>
-                  {mpesaEnabled
-                     ? 'STK push sent — approve on your phone'
-                     : 'Writing to database…'}
-               </p>
-            </div>
-         )}
-
-         {/* ── success ── */}
-         {step === 'success' && (
-            <div className={styles.statusBlock}>
-               <svg className={styles.successIcon} width="32" height="32" viewBox="0 0 24 24"
-                  fill="none" stroke="currentColor" strokeWidth="1.8"
-                  strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="7 12 10.5 15.5 17 9" />
-               </svg>
-               <p className={styles.statusText}>
-                  {quantity} slot{quantity > 1 ? 's' : ''} added successfully.
-               </p>
-               <button className={styles.ghostBtn} onClick={reset}>Add more</button>
             </div>
          )}
 

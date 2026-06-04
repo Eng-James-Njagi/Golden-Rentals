@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import styles from '../css/Properties/ReviewPrompt.module.css';
 
 export default function ReviewForm({ listing_id, listing_name }) {
@@ -11,7 +12,14 @@ export default function ReviewForm({ listing_id, listing_name }) {
   const [ error, setError ] = useState(null);
 
   const handleSubmit = async () => {
-    if (rating === 0) return;
+    if (rating === 0) {
+      toast.error('Please select a star rating.');
+      return;
+    }
+    if (!reviewText.trim()) {
+      toast.error('Please write a review before submitting.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -28,7 +36,7 @@ export default function ReviewForm({ listing_id, listing_name }) {
         body: JSON.stringify({
           fingerprint,
           rating,
-          review_text: reviewText.trim() || null,
+          review_text: reviewText.trim(),
         }),
       });
 

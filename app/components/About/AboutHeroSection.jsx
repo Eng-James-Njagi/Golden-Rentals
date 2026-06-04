@@ -32,13 +32,6 @@ export default function AboutHeroSection() {
               <div className={styles.appHeroOverlay}>
                 <h2 className={styles.appHeroText}>Lets Find Your Future Home</h2>
                 <p className={styles.appHeroSub}>Find the house that fits</p>
-                <div className={styles.appSearchBar}>
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                    <circle cx="6.5" cy="6.5" r="5" stroke="#aaa" strokeWidth="1.5"/>
-                    <path d="M10.5 10.5l3 3" stroke="#aaa" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                  <span>Search for a property</span>
-                </div>
                 <div className={styles.appTabs}>
                   <button className={`${styles.appTab} ${styles.appTabActive}`}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none">

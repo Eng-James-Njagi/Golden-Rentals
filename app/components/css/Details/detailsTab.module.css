@@ -134,6 +134,14 @@
   padding-top: 8px;       /* optical alignment with avatar */
 }
 
+.starFilled {
+  color: #f5a623;
+}
+
+.starEmpty {
+  color: #ddd;
+}
+
 @media (max-width: 600px) {
   .tab {
     padding: 12px 10px;

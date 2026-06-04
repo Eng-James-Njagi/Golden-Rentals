@@ -11,8 +11,9 @@ const HomeIcon = () => (
 );
 
 const WhatsAppIcon = () => (
-  <svg className="footer-social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+  <svg className="footer-social-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.528 5.855L.057 23.012a.75.75 0 0 0 .931.931l5.127-1.474A11.953 11.953 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.725 9.725 0 0 1-4.929-1.341l-.355-.21-3.666 1.054 1.036-3.588-.229-.368A9.712 9.712 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z" />
   </svg>
 );
 
@@ -31,8 +32,8 @@ const FacebookIcon = () => (
 );
 
 const TwitterIcon = () => (
-  <svg className="footer-social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 8v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
+  <svg className="footer-social-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L2.25 2.25h6.865l4.265 5.638L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
   </svg>
 );
 
@@ -87,7 +88,7 @@ export default function Footer() {
               </a>
               <a href="mailto:goldenrentalsystems@gmail.com" className="footer-contact-item">
                 <MailIcon />
-                <span>cityrentalsystems@gmail.com</span>
+                <span>pedurentals@gmail.com</span>
               </a>
             </div>
           </div>
@@ -128,7 +129,14 @@ export default function Footer() {
       {/* Divider + Copyright */}
       <div className="footer-bottom">
         <div className="footer-divider" />
-        <p className="footer-copy">PeduRentals©2026</p>
+        <div className="footer-bottom-row">
+          <p className="footer-copy">PeduRentals©2026</p>
+          <div className="footer-legal-links">
+            <Link href="/legal?doc=terms" className="footer-legal-link">Terms & Conditions</Link>
+            <span className="footer-legal-sep">·</span>
+            <Link href="/legal?doc=privacy" className="footer-legal-link">Privacy Policy</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

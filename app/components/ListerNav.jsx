@@ -3,10 +3,10 @@ import { useState, useRef, useEffect } from "react";
 import styles from "./css/Lister/ListerNav.module.css";
 
 const TABS = [
-  { id: "listings",  label: "Listings" },
+  { id: "listings", label: "Listings" },
   { id: "analytics", label: "Analytics" },
-  { id: "add",       label: "Add Listing" },
-  { id: "account",   label: "Account Setting" },
+  { id: "add", label: "Add Listing" },
+  { id: "account", label: "Account Setting" },
 ];
 
 const DefaultPanel = ({ label }) => (
@@ -16,35 +16,35 @@ const DefaultPanel = ({ label }) => (
 );
 
 export default function ListerNav({ panels = {}, defaultTab = "listings", activeTab: controlledTab, onTabChange }) {
-  const [active, setActive]             = useState(defaultTab);
-  const [indicatorStyle, setIndicatorStyle] = useState({});
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [ active, setActive ] = useState(defaultTab);
+  const [ indicatorStyle, setIndicatorStyle ] = useState({});
+  const [ dropdownOpen, setDropdownOpen ] = useState(false);
 
   const currentActive = controlledTab ?? active;
 
   const tabRefs = useRef({});
-  const barRef  = useRef(null);
+  const barRef = useRef(null);
   const rootRef = useRef(null);
 
   const activeTab = TABS.find(t => t.id === currentActive);
 
   useEffect(() => {
     const updateIndicator = () => {
-      const bar   = barRef.current;
-      const tabEl = tabRefs.current[currentActive];
+      const bar = barRef.current;
+      const tabEl = tabRefs.current[ currentActive ];
       if (!bar || !tabEl) return;
       const padding = 16;
       const barRect = bar.getBoundingClientRect();
       const tabRect = tabEl.getBoundingClientRect();
       setIndicatorStyle({
-        left:  tabRect.left - barRect.left + padding / 4,
+        left: tabRect.left - barRect.left + padding / 4,
         width: tabRect.width - padding,
       });
     };
     updateIndicator();
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
-  }, [currentActive]);
+  }, [ currentActive ]);
 
   useEffect(() => {
     if (!dropdownOpen) return;
@@ -54,7 +54,7 @@ export default function ListerNav({ panels = {}, defaultTab = "listings", active
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [dropdownOpen]);
+  }, [ dropdownOpen ]);
 
   const selectTab = (id) => {
     setActive(id);
@@ -65,13 +65,19 @@ export default function ListerNav({ panels = {}, defaultTab = "listings", active
   return (
     <div className={styles.root} ref={rootRef}>
 
-      <div className={styles.bar} ref={barRef} onClick={() => setDropdownOpen(p => !p)}>
+      <div
+        className={styles.bar}
+        ref={barRef}
+        onClick={() => {
+          if (window.innerWidth <= 480) setDropdownOpen(p => !p);
+        }}
+      >
         <div className={styles.indicator} style={indicatorStyle} />
 
         {TABS.map(tab => (
           <button
             key={tab.id}
-            ref={el => (tabRefs.current[tab.id] = el)}
+            ref={el => (tabRefs.current[ tab.id ] = el)}
             className={`${styles.tab}${currentActive === tab.id ? ` ${styles.tabActive}` : ""}`}
             onClick={(e) => { e.stopPropagation(); selectTab(tab.id); }}
           >
@@ -109,7 +115,7 @@ export default function ListerNav({ panels = {}, defaultTab = "listings", active
       <div className={styles.underline} />
 
       <div className={styles.panelWrap}>
-        {panels[currentActive] ?? <DefaultPanel label={activeTab.label} />}
+        {panels[ currentActive ] ?? <DefaultPanel label={activeTab.label} />}
       </div>
 
     </div>
