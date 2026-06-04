@@ -236,8 +236,30 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
   const handleVideo = useCallback(e => {
     const file = e.target.files?.[ 0 ] ?? null;
-    setForm(prev => ({ ...prev, video: file }));
-    setIsDirty(true);
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, video: 'Video exceeds 5 MB' }));
+      toast.error('Video exceeds 5 MB. Please upload a smaller file.');
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      if (video.duration > 60) {
+        setErrors(prev => ({ ...prev, video: 'Video exceeds 60 seconds' }));
+        toast.error('Video exceeds 60 seconds. Please trim it before uploading.');
+        return;
+      }
+      setForm(prev => ({ ...prev, video: file }));
+      setIsDirty(true);
+      setErrors(prev => ({ ...prev, video: undefined }));
+      toast.success('Video added successfully.');
+    };
+    video.src = url;
   }, []);
 
   const triggerDiscard = () => setShowPopup(true);
@@ -266,7 +288,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
   const validate = () => {
     const errs = {};
-    const MAX_BYTES = 2 * 1024 * 1024;
+    const MAX_BYTES = 5 * 1024 * 1024; //5 MB
 
     REQUIRED.forEach(field => {
       if (!form[ field ] || String(form[ field ]).trim() === '') {
@@ -290,13 +312,17 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
       if (isEdit && file === null) return;
       if (!(file instanceof File) || file.size === 0) {
         errs[ `image_${i}` ] = `Image ${i + 1} is required`;
+        toast.warning(`Image ${i + 1} is required`);
       } else if (file.size > MAX_BYTES) {
-        errs[ `image_${i}` ] = `Image ${i + 1} exceeds 2 MB`;
+        errs[ `image_${i}` ] = `Image ${i + 1} exceeds 5 MB`;
+        toast.error(`Image ${i + 1} exceeds 5 MB`)
       }
+
     });
 
     if (form.video instanceof File && form.video.size > MAX_BYTES) {
-      errs.video = 'Video exceeds 2 MB';
+      errs.video = 'Video exceeds 5 MB';
+      toast.error("Video exceeds 5MB")
     }
 
     return errs;
@@ -341,7 +367,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
       const url = isEdit ? `/api/listings/${prefill.listing_id}` : '/api/listings';
       const method = isEdit ? 'PATCH' : 'POST';
 
-      {/*console.table(Object.fromEntries(fd)); */}
+      {/*console.table(Object.fromEntries(fd)); */ }
       const res = await fetch(url, { method, body: fd });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? (isEdit ? 'Failed to update listing.' : 'Failed to post listing.'));
@@ -397,13 +423,13 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
           <Section title="Details">
             <FieldInput
-              icon="tag" label="Name" name="name"
+              icon="tag" label="Property Name" name="name"
               value={form.name} onChange={handleChange} errors={errors}
               placeholder="e.g. Westlands 2BR Apartment"
               disabled={!canAdd && !isEdit}
             />
             <FieldSelect
-              icon="map" label="Ward" name="ward"
+              icon="map" label="Ward Name" name="ward"
               options={wardOptions} value={form.ward}
               onChange={handleChange} errors={errors}
               disabled={filtersLoading || (!canAdd && !isEdit)}
@@ -416,33 +442,33 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
               disabled={!canAdd && !isEdit}
             />
             <FieldInput
-              icon="link" label="Google Maps URL" name="property_location"
+              icon="link" label="Google Maps Location(URL)" name="property_location"
               value={form.property_location} onChange={handleChange} errors={errors}
               placeholder="https://www.google.com/maps/embed?pb=..."
               hint="Paste the embed URL from Google Maps → Share → Embed a map"
               disabled={!canAdd && !isEdit}
             />
             <FieldSelect
-              icon="grid" label="Category" name="category"
+              icon="grid" label="Property Category" name="category"
               options={categoryOptions} value={form.category}
               onChange={handleCategoryChange} errors={errors}
               disabled={filtersLoading || (!canAdd && !isEdit)}
             />
             <FieldSelect
-              icon="layers" label="Type" name="type"
+              icon="layers" label="Property Type" name="type"
               options={typeOptions} value={form.type}
               onChange={handleChange} errors={errors
               }
               disabled={!form.category || filtersLoading || (!canAdd && !isEdit)}
             />
             <FieldSelect
-              icon="clock" label="Duration" name="duration"
+              icon="clock" label="Rent Duration" name="duration"
               options={DURATIONS} value={form.duration}
               onChange={handleChange} errors={errors}
               disabled={!canAdd && !isEdit}
             />
             <FieldSelect
-              icon="sofa" label="Furniture" name="furniture"
+              icon="sofa" label="Property Furnishing" name="furniture"
               options={FURNITURE} value={form.furniture}
               onChange={handleChange} errors={errors}
               disabled={!canAdd && !isEdit}
@@ -487,7 +513,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
                 <Icon d={icons.image} />
                 <div className={styles.fieldBody}>
                   <span className={styles.fieldLabel}>
-                    {isEdit ? 'Images (upload to replace)' : 'Images (3 required)'}
+                    {isEdit ? 'Images (upload to replace)' : 'Property Images (3 required)'}
                   </span>
                   <div className={styles.imageGroup}>
                     {form.images.map((file, i) => (
@@ -510,7 +536,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
               <div className={styles.fieldRow}>
                 <Icon d={icons.video} />
                 <div className={styles.fieldBody}>
-                  <span className={styles.fieldLabel}>Video (optional)</span>
+                  <span className={styles.fieldLabel}>Property Video</span>
                   <div className={styles.imageGroup}>
                     <label className={`${styles.uploadSlot} ${(!canAdd && !isEdit) ? styles.uploadSlotDisabled : ''}`}>
                       <Icon d={icons.video} className={styles.uploadIcon} />
@@ -528,7 +554,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
         <Section title="Description">
           <FieldTextarea
-            icon="align" label="Description" name="description"
+            icon="align" label="Property Description" name="description"
             value={form.description} onChange={handleChange} errors={errors}
             hint="Highlight key features, nearby amenities, access etc."
             disabled={!canAdd && !isEdit}

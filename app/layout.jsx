@@ -25,7 +25,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Pedu Rentals System",
+  title: "Pedu Rentals",
   description: "Lets find your future home",
 };
 

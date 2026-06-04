@@ -128,7 +128,7 @@ export default function PropertyTabs({ listing }) {
                       )}
                     </div>
                     <div className={styles.reviewTop}>
-                      <Stars rating={r.rating} />
+                      <Stars rating={Number(r.rating)} />
                     </div>
                   </div>
                 ))}

@@ -86,7 +86,7 @@ export async function POST(request) {
     const videoFile = formData.get('video');
     const hasVideo = videoFile && videoFile instanceof File && videoFile.size > 0;
 
-    const MAX_BYTES = 2 * 1024 * 1024; // 2 MB
+    const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
     for (const file of imageFiles) {
       if (file.size > MAX_BYTES) {
         return NextResponse.json({ error: `Image "${file.name}" exceeds 2 MB` }, { status: 400 });
