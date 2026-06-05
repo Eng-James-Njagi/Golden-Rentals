@@ -10,33 +10,39 @@ const SLOT_PRICE_KES = 500;
 // ── Buni config ───────────────────────────────────────────────
 // Sandbox:    BUNI_BASE_URL = https://uat.buni.kcbgroup.com
 // Production: BUNI_BASE_URL = https://api.buni.kcbgroup.com  (swap when going live)
-const BUNI_BASE_URL      = process.env.BUNI_BASE_URL      ?? '';
-const BUNI_TOKEN_URL     = process.env.BUNI_TOKEN_URL     ?? 'https://accounts.buni.kcbgroup.com/oauth2/token';
-const BUNI_CONSUMER_KEY  = process.env.BUNI_CONSUMER_KEY  ?? '';
+const BUNI_BASE_URL = process.env.BUNI_BASE_URL ?? '';
+const BUNI_TOKEN_URL = process.env.BUNI_TOKEN_URL ?? 'https://accounts.buni.kcbgroup.com/oauth2/token';
+const BUNI_CONSUMER_KEY = process.env.BUNI_CONSUMER_KEY ?? '';
 const BUNI_CONSUMER_SECRET = process.env.BUNI_CONSUMER_SECRET ?? '';
-const BUNI_SHORTCODE     = process.env.BUNI_SHORTCODE     ?? '';   // sandbox: 522522
-const BUNI_CALLBACK_URL  = process.env.BUNI_CALLBACK_URL  ?? '';
+const BUNI_SHORTCODE = process.env.BUNI_SHORTCODE ?? '';   // sandbox: 522522
+const BUNI_CALLBACK_URL = process.env.BUNI_CALLBACK_URL ?? '';
 
 
 async function getBuniToken() {
-  const res = await fetch(`${BUNI_TOKEN_URL}?grant_type=client_credentials`, {
+  const key = (BUNI_CONSUMER_KEY ?? '').trim();
+  const secret = (BUNI_CONSUMER_SECRET ?? '').trim();
+  const basic = Buffer.from(`${key}:${secret}`).toString('base64');
+
+  console.log('key length:', key.length);
+  console.log('secret length:', secret.length);
+  console.log('basic:', basic);
+
+  const res = await fetch(BUNI_TOKEN_URL, {
     method: 'POST',
     headers: {
+      'Authorization': `Basic ${basic}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: new URLSearchParams({
-      grant_type:    'client_credentials',
-      client_id:     BUNI_CONSUMER_KEY,
-      client_secret: BUNI_CONSUMER_SECRET,
-    }),
+    body: 'grant_type=client_credentials',
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Buni token fetch failed (${res.status}): ${text}`);
-  }
+  const text = await res.text();
+  console.log('token response status:', res.status);
+  console.log('token response body:', text);
 
-  const json = await res.json();
+  if (!res.ok) throw new Error(`Buni token fetch failed (${res.status}): ${text}`);
+
+  const json = JSON.parse(text);
   if (!json.access_token) throw new Error('Buni token response missing access_token');
   return json.access_token;
 }
@@ -62,7 +68,7 @@ export async function POST(request) {
     const body = await request.json();
     const { action } = body;
 
-    if (action === 'add_slots')     return handleAddSlots(request, body);
+    if (action === 'add_slots') return handleAddSlots(request, body);
     if (action === 'buni_callback') return handleBuniCallback(body);
 
     return NextResponse.json({ error: 'Unknown action.' }, { status: 400 });
@@ -115,8 +121,8 @@ export async function GET(request) {
     return NextResponse.json({ error: countErr.message, code: countErr.code }, { status: 500 });
   }
 
-  const slots    = lister?.Slots ?? 0;
-  const listings = listingCount  ?? 0;
+  const slots = lister?.Slots ?? 0;
+  const listings = listingCount ?? 0;
 
   return NextResponse.json({ slots, listings, can_add: slots > listings });
 }
@@ -133,7 +139,7 @@ async function handleAddSlots(request, body) {
     return NextResponse.json({ error: 'Unauthenticated.' }, { status: 401 });
   }
 
-  const quantity     = Math.max(1, Math.min(20, parseInt(body.quantity ?? 1, 10)));
+  const quantity = Math.max(1, Math.min(20, parseInt(body.quantity ?? 1, 10)));
   const mpesaEnabled = await isMpesaEnabled(supabase);
 
   // ── Simulated: increment only ──────────────────────────────
@@ -142,10 +148,10 @@ async function handleAddSlots(request, body) {
     if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
 
     return NextResponse.json({
-      success:     true,
-      simulated:   true,
+      success: true,
+      simulated: true,
       slots_added: quantity,
-      new_total:   result.new_total,
+      new_total: result.new_total,
     });
   }
 
@@ -161,17 +167,17 @@ async function handleAddSlots(request, body) {
     const stkRes = await fetch(`${BUNI_BASE_URL}/mm/api/request/1.0.0/stkpush`, {
       method: 'POST',
       headers: {
-        'Content-Type':  'application/json',
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
-        phoneNumber:            phone,
-        amount:                 String(amount),          // Buni expects a string
-        invoiceNumber:          `slots-${user.id.slice(0, 8)}-${Date.now()}`,
-        sharedShortCode:        true,
-        orgShortCode:           BUNI_SHORTCODE,          // "522522" in sandbox
-        orgPassKey:             '',                      // leave blank in sandbox
-        callbackUrl:            BUNI_CALLBACK_URL,
+        phoneNumber: phone,
+        amount: String(amount),          // Buni expects a string
+        invoiceNumber: `slots-${user.id.slice(0, 8)}-${Date.now()}`,
+        sharedShortCode: true,
+        orgShortCode: BUNI_SHORTCODE,          // "522522" in sandbox
+        orgPassKey: '',                      // leave blank in sandbox
+        callbackUrl: BUNI_CALLBACK_URL,
         transactionDescription: `${quantity} listing slot(s)`,
       }),
     });
@@ -189,7 +195,7 @@ async function handleAddSlots(request, body) {
     const checkoutRequestId = stkJson.response.CheckoutRequestID;
 
     await supabase.from('Pending_Payments').insert({
-      lister_uuid:         user.id,
+      lister_uuid: user.id,
       checkout_request_id: checkoutRequestId,
       phone,
       quantity,
@@ -198,11 +204,11 @@ async function handleAddSlots(request, body) {
     });
 
     return NextResponse.json({
-      success:           true,
-      simulated:         false,
-      provider:          'buni',
+      success: true,
+      simulated: false,
+      provider: 'buni',
       CheckoutRequestID: checkoutRequestId,
-      CustomerMessage:   stkJson.response.CustomerMessage,
+      CustomerMessage: stkJson.response.CustomerMessage,
     });
 
   } catch (err) {
@@ -225,14 +231,14 @@ async function handleBuniCallback(body) {
   }
 
   const checkoutRequestId = cb.CheckoutRequestID;
-  const succeeded         = cb.ResultCode === 0;
+  const succeeded = cb.ResultCode === 0;
 
   // Extract metadata items by name
   const items = cb.CallbackMetadata?.Item ?? [];
   const getMeta = (name) => items.find(i => i.Name === name)?.Value ?? null;
 
   const mpesaReceiptNumber = getMeta('MpesaReceiptNumber');
-  const phoneNumber        = String(getMeta('PhoneNumber') ?? '');
+  const phoneNumber = String(getMeta('PhoneNumber') ?? '');
 
   // ── Payment failed ────────────────────────────────────────
   if (!succeeded) {
@@ -249,15 +255,15 @@ async function handleBuniCallback(body) {
 
     if (pending) {
       await supabase.from('Payment_Ledger').insert({
-        lister_uuid:         pending.lister_uuid,
+        lister_uuid: pending.lister_uuid,
         checkout_request_id: checkoutRequestId,
-        mpesa_receipt:       null,
-        phone:               pending.phone,
-        quantity:            pending.quantity,
-        amount_kes:          pending.amount,
-        slots_before:        null,
-        slots_after:         null,
-        status:              'rejected',
+        mpesa_receipt: null,
+        phone: pending.phone,
+        quantity: pending.quantity,
+        amount_kes: pending.amount,
+        slots_before: null,
+        slots_after: null,
+        status: 'rejected',
       });
     }
 
@@ -277,14 +283,14 @@ async function handleBuniCallback(body) {
   const result = await incrementSlots(supabase, pending.lister_uuid, pending.quantity, {
     checkoutRequestId,
     mpesaReceipt: mpesaReceiptNumber,
-    phone:        phoneNumber,
-    amount:       pending.amount,
+    phone: phoneNumber,
+    amount: pending.amount,
   });
 
   await supabase
     .from('Pending_Payments')
     .update({
-      status:     result.error ? 'slot_error' : 'complete',
+      status: result.error ? 'slot_error' : 'complete',
       updated_at: new Date().toISOString(),
     })
     .eq('checkout_request_id', checkoutRequestId);
@@ -306,7 +312,7 @@ async function incrementSlots(supabase, listerUUID, quantity, meta = null) {
   if (fetchErr) return { error: fetchErr.message };
 
   const slots_before = row?.Slots ?? 0;
-  const slots_after  = slots_before + quantity;
+  const slots_after = slots_before + quantity;
 
   const { error: updateErr } = await supabase
     .from('Listers_Info')
@@ -317,12 +323,12 @@ async function incrementSlots(supabase, listerUUID, quantity, meta = null) {
 
   if (meta !== null) {
     await supabase.from('Payment_Ledger').insert({
-      lister_uuid:         listerUUID,
+      lister_uuid: listerUUID,
       checkout_request_id: meta.checkoutRequestId ?? null,
-      mpesa_receipt:       meta.mpesaReceipt       ?? null,
-      phone:               meta.phone              ?? null,
+      mpesa_receipt: meta.mpesaReceipt ?? null,
+      phone: meta.phone ?? null,
       quantity,
-      amount_kes:          meta.amount ?? quantity * SLOT_PRICE_KES,
+      amount_kes: meta.amount ?? quantity * SLOT_PRICE_KES,
       slots_before,
       slots_after,
       status: 'complete',
@@ -338,7 +344,7 @@ async function incrementSlots(supabase, listerUUID, quantity, meta = null) {
 // ─────────────────────────────────────────────────────────────
 function sanitisePhone(raw) {
   const digits = raw.replace(/\D/g, '');
-  if (digits.startsWith('0')   && digits.length === 10) return '254' + digits.slice(1);
+  if (digits.startsWith('0') && digits.length === 10) return '254' + digits.slice(1);
   if (digits.startsWith('254') && digits.length === 12) return digits;
   return null;
 }
