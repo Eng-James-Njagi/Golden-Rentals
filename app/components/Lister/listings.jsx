@@ -4,8 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import PropertyCard from '../Properties/PropertyCard';
 import styles from '../css/Lister/MyListing.module.css';
 import AddSlotCard from './AddslotCard';
-import AddListing from './AddListing'; // adjust path if needed
+import WelcomeBanner from './WelcomeMessage';
+import AddListing from './AddListing';
+import ListingSummary from '../Lister/ListingsSummary'
 import { EDIT_WINDOW_DAYS } from '@/lib/constants';
+import TopPerformer from './TopPerfomer'
+import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+const supabase = createBrowserSupabaseClient();
 
 const PAGE_SIZE = 20;
 
@@ -19,6 +24,7 @@ export default function MyListings({ slotData, onSlotAdded }) {
    const [ deleteError, setDeleteError ] = useState(null);
    const [ confirmId, setConfirmId ] = useState(null);
    const [ editingListing, setEditingListing ] = useState(null);
+   const [ userInfo, setUserInfo ] = useState({ username: '', isNew: false, orgImage: null });
 
    const fetchListings = useCallback(async (page) => {
       setLoading(true);
@@ -117,6 +123,25 @@ export default function MyListings({ slotData, onSlotAdded }) {
       return diffMs / (1000 * 60 * 60 * 24) <= EDIT_WINDOW_DAYS;
    }
 
+   useEffect(() => {
+      const init = async () => {
+         try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const res = await fetch('/api/account');
+            const json = await res.json();
+
+            const isNew = user?.created_at
+               ? (Date.now() - new Date(user.created_at).getTime()) < 60 * 1000
+               : false;
+
+            setUserInfo({ username: json.username ?? '', isNew, orgImage: null });
+         } catch { }
+      };
+      init();
+   }, []);
+
    // Render edit form instead of listings grid
    if (editingListing) {
       return (
@@ -130,7 +155,15 @@ export default function MyListings({ slotData, onSlotAdded }) {
 
    return (
       <div className={styles.root}>
+         <WelcomeBanner
+            username={userInfo.username}
+            isNew={userInfo.isNew}
+            orgImage={userInfo.orgImage}
+         />
 
+         <ListingSummary />
+         <TopPerformer />
+         <AddSlotCard onSlotAdded={() => { fetchListings(currentPage); if (onSlotAdded) onSlotAdded(); }} />
          {/* ── Header ── */}
          <div className={styles.header}>
             <h2 className={styles.title}>My Listings</h2>
@@ -140,14 +173,14 @@ export default function MyListings({ slotData, onSlotAdded }) {
                      {pagination.total_records} listing{pagination.total_records !== 1 ? 's' : ''}
                   </span>
                )}
-               {slotData && (
+               {/*{slotData && (
                   <>
                      <span className={styles.metaDivider}>·</span>
                      <span className={`${styles.count} ${!slotData.can_add ? styles.countWarning : ''}`}>
                         {slotData.slots} listing slot{slotData.slots !== 1 ? 's' : ''}
                      </span>
                   </>
-               )}
+               )} */}
             </div>
          </div>
 
@@ -161,7 +194,7 @@ export default function MyListings({ slotData, onSlotAdded }) {
             <div className={styles.errorState}>{error}</div>
          )}
 
-            <AddSlotCard onSlotAdded={() => { fetchListings(currentPage); if (onSlotAdded) onSlotAdded(); }} />
+
 
          {/* ── Skeletons ── */}
          {loading && (

@@ -9,6 +9,7 @@ import MyListings from '../../components/Lister/listings';
 import Analytics from '../../components/Lister/Analytics'
 import ListerTopBar from '../../components/Lister/ListerTopBar'
 
+
 const supabase = createBrowserSupabaseClient();
 
 export default function ListerLand() {
@@ -16,6 +17,7 @@ export default function ListerLand() {
   const [ editingListing, setEditingListing ] = useState(null);
   const [ activeTab, setActiveTab ] = useState('listings');
   const [ listerInfo, setListerInfo ] = useState({ username: '', isNew: false });
+  const [ listerProfile, setListerProfile ] = useState(null);
 
 
   const fetchSlots = useCallback(async () => {
@@ -51,12 +53,25 @@ export default function ListerLand() {
     const init = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         const res = await fetch('/api/account');
         const json = await res.json();
+
         const isNew = user?.created_at
           ? (Date.now() - new Date(user.created_at).getTime()) < 60 * 1000
           : false;
+
         setListerInfo({ username: json.username ?? '', isNew });
+
+        // AFTER
+        const { data: profile } = await supabase
+          .from('Listers_Info')
+          .select('lister_org, profile_image_url')                 // ← correct column
+          .eq('lister_UUID', user.id)
+          .single();
+
+        setListerProfile(profile ?? null);
       } catch { }
     };
     init();
@@ -68,6 +83,8 @@ export default function ListerLand() {
     <>
       <ListerTopBar username={listerInfo.username} isNew={listerInfo.isNew} />
       <ListerNav
+        orgImage={listerProfile?.profile_image_url ?? null}
+        orgName={listerProfile?.lister_org ?? ''}
         defaultTab="listings"
         activeTab={activeTab}
         onTabChange={handleTabChange}

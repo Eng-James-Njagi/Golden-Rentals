@@ -20,10 +20,10 @@ function useCountdown(target) {
     };
   };
 
-  const [ time, setTime ] = useState(ZERO); // static — matches SSR
+  const [ time, setTime ] = useState(ZERO);
 
   useEffect(() => {
-    setTime(calc());                        // sync to real time after mount
+    setTime(calc());
     const id = setInterval(() => setTime(calc()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -31,13 +31,22 @@ function useCountdown(target) {
   return time;
 }
 
+// ── NEW: track window width ───────────────────────────────────
+function useWindowWidth() {
+  const [ width, setWidth ] = useState(null);
+
+  useEffect(() => {
+    setWidth(window.innerWidth);
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  return width;
+}
+
 const Digit = ({ value, label }) => (
-  <span style={{
-    display: 'inline-flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    lineHeight: 1,
-  }}>
+  <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
     <span style={{
       fontFamily: 'var(--font-geist-mono)',
       fontWeight: 700,
@@ -78,6 +87,8 @@ export default function FeedbackBanner() {
   const bannerRef = useRef(null);
   const visible = useNavVisibility();
   const countdown = useCountdown(LAUNCH_DATE);
+const windowWidth = useWindowWidth();
+const isNarrow    = windowWidth !== null && windowWidth < 680;
 
   useEffect(() => {
     const nav = document.querySelector('nav');
@@ -113,11 +124,14 @@ export default function FeedbackBanner() {
       style={{
         backgroundColor: 'var(--darkBackground, #f5f0e8)',
         borderBottom: '1px solid rgba(0,0,0,0.1)',
-        padding: '8px 16px',
+        // ── CHANGED: column on narrow, row on wide ──────────
+        padding: isNarrow ? '10px 16px' : '8px 16px',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
+        flexDirection: isNarrow ? 'column' : 'row',
+        alignItems: isNarrow ? 'flex-start' : 'center',
+        justifyContent: isNarrow ? 'flex-start' : 'space-between',
+        gap: isNarrow ? '8px' : '12px',
+        // ────────────────────────────────────────────────────
         position: 'fixed',
         top: `${navHeight}px`,
         left: 0,
@@ -127,99 +141,199 @@ export default function FeedbackBanner() {
         transition: 'transform 0.3s ease, top 0.3s ease',
       }}
     >
-      {/* Left — message */}
-      <span style={{
-        fontFamily: 'var(--font-geist-sans)',
-        fontSize: '16px',
-        color: '#1a1a1a',
-        fontWeight: 500,
-        flexShrink: 1,
-        minWidth: 0,
-      }}>
-        <span style={{ marginRight: '4px' }}>🚀</span>
-        Hi👋 there; We're live & building in public —{' '}
-        <button
-          data-tally-open="KYkPYV"
-          data-tally-overlay="1"
-          data-tally-width="600"
-          data-tally-auto-close="3000"
-          style={{
-            background: 'none',
-            border: 'none',
-            textDecoration: 'underline',
-            fontFamily: 'var(--font-geist-sans)',
-            cursor: 'pointer',
-            fontSize: '16px',
-            color: 'var(--darkSecondary, #DEA806)',
-            fontWeight: 600,
-            padding: 0,
-            outline: 'none',
-          }}
-        >
-          your feedback ships next
-        </button>
-      </span>
+      {/* Message + dismiss row on narrow so × stays top-right */}
+      {isNarrow ? (
+        // ── NARROW: message row + countdown below ────────────
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <span style={{
+              fontFamily: 'var(--font-geist-sans)',
+              fontSize: '14px',
+              color: '#1a1a1a',
+              fontWeight: 500,
+              flexShrink: 1,
+              minWidth: 0,
+            }}>
+              <span style={{ marginRight: '4px' }}>🚀</span>
+              Hi👋 there; We're live & building in public —{' '}
+              <button
+                data-tally-open="KYkPYV"
+                data-tally-overlay="1"
+                data-tally-width="600"
+                data-tally-auto-close="3000"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  textDecoration: 'underline',
+                  fontFamily: 'var(--font-geist-sans)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  color: 'var(--darkSecondary, #DEA806)',
+                  fontWeight: 600,
+                  padding: 0,
+                  outline: 'none',
+                }}
+              >
+                your feedback ships next
+              </button>
+            </span>
 
-      {/* Center — countdown */}
-      {!countdown.done && (
-        <span style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '5px',
-          flexShrink: 0,
-          padding: '4px 10px',
-          border: '1px solid rgba(0,0,0,0.1)',
-          borderRadius: '4px',
-          background: 'rgba(255,255,255,0.5)',
-        }}>
+            {/* Dismiss sits top-right on narrow */}
+            <button
+              onClick={() => setDismissed(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '18px',
+                color: '#999',
+                lineHeight: 1,
+                flexShrink: 0,
+                padding: '0 0 0 8px',
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Countdown on its own row, full width */}
+          {!countdown.done && (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '4px 10px',
+              border: '1px solid rgba(0,0,0,0.1)',
+              borderRadius: '4px',
+              background: 'rgba(255,255,255,0.5)',
+              alignSelf: 'flex-start',
+            }}>
+              <span style={{
+                fontFamily: 'var(--font-geist-mono)',
+                fontSize: '12px',
+                color: '#888',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginRight: '4px',
+              }}>
+                Launch in
+              </span>
+              {countdown.days > 0 && <><Digit value={countdown.days} label="d" /><Sep /></>}
+              <Digit value={countdown.hours} label="hr" />
+              <Sep />
+              <Digit value={countdown.minutes} label="min" />
+              <Sep />
+              <Digit value={countdown.seconds} label="sec" />
+            </span>
+          )}
+          {countdown.done && (
+            <span style={{
+              fontFamily: 'var(--font-geist-mono)',
+              fontSize: '11px',
+              color: 'var(--darkSecondary, #DEA806)',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}>
+              🎉 We're live
+            </span>
+          )}
+        </>
+      ) : (
+        // ── WIDE: original row layout, untouched ─────────────
+        <>
           <span style={{
-            fontFamily: 'var(--font-geist-mono)',
-            fontSize: '12px',
-            color: '#888',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            marginRight: '4px',
+            fontFamily: 'var(--font-geist-sans)',
+            fontSize: '16px',
+            color: '#1a1a1a',
+            fontWeight: 500,
+            flexShrink: 1,
+            minWidth: 0,
           }}>
-            Launch in
+            <span style={{ marginRight: '4px' }}>🚀</span>
+            Hi👋 there; We're live & building in public —{' '}
+            <button
+              data-tally-open="KYkPYV"
+              data-tally-overlay="1"
+              data-tally-width="600"
+              data-tally-auto-close="3000"
+              style={{
+                background: 'none',
+                border: 'none',
+                textDecoration: 'underline',
+                fontFamily: 'var(--font-geist-sans)',
+                cursor: 'pointer',
+                fontSize: '16px',
+                color: 'var(--darkSecondary, #DEA806)',
+                fontWeight: 600,
+                padding: 0,
+                outline: 'none',
+              }}
+            >
+              your feedback ships next
+            </button>
           </span>
-          {countdown.days > 0 && <><Digit value={countdown.days} label="d" /><Sep /></>}
-          <Digit value={countdown.hours} label="hr" />
-          <Sep />
-          <Digit value={countdown.minutes} label="min" />
-          <Sep />
-          <Digit value={countdown.seconds} label="sec" />
-        </span>
-      )}
-      {countdown.done && (
-        <span style={{
-          fontFamily: 'var(--font-geist-mono)',
-          fontSize: '11px',
-          color: 'var(--darkSecondary, #DEA806)',
-          fontWeight: 700,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          flexShrink: 0,
-        }}>
-          🎉 We're live
-        </span>
-      )}
 
-      {/* Right — dismiss */}
-      <button
-        onClick={() => setDismissed(true)}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          fontSize: '18px',
-          color: '#999',
-          lineHeight: 1,
-          flexShrink: 0,
-          padding: '0 2px',
-        }}
-      >
-        ×
-      </button>
+          {!countdown.done && (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              flexShrink: 0,
+              padding: '4px 10px',
+              border: '1px solid rgba(0,0,0,0.1)',
+              borderRadius: '4px',
+              background: 'rgba(255,255,255,0.5)',
+            }}>
+              <span style={{
+                fontFamily: 'var(--font-geist-mono)',
+                fontSize: '12px',
+                color: '#888',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginRight: '4px',
+              }}>
+                Launch in
+              </span>
+              {countdown.days > 0 && <><Digit value={countdown.days} label="d" /><Sep /></>}
+              <Digit value={countdown.hours} label="hr" />
+              <Sep />
+              <Digit value={countdown.minutes} label="min" />
+              <Sep />
+              <Digit value={countdown.seconds} label="sec" />
+            </span>
+          )}
+          {countdown.done && (
+            <span style={{
+              fontFamily: 'var(--font-geist-mono)',
+              fontSize: '11px',
+              color: 'var(--darkSecondary, #DEA806)',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              flexShrink: 0,
+            }}>
+              🎉 We're live
+            </span>
+          )}
+
+          <button
+            onClick={() => setDismissed(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '18px',
+              color: '#999',
+              lineHeight: 1,
+              flexShrink: 0,
+              padding: '0 2px',
+            }}
+          >
+            ×
+          </button>
+        </>
+      )}
     </div>
   );
 }
