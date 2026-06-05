@@ -18,16 +18,17 @@ const BUNI_SHORTCODE     = process.env.BUNI_SHORTCODE     ?? '';   // sandbox: 5
 const BUNI_CALLBACK_URL  = process.env.BUNI_CALLBACK_URL  ?? '';
 
 
-// ── Token fetch (client_credentials) ─────────────────────────
 async function getBuniToken() {
-  const basic = Buffer.from(`${BUNI_CONSUMER_KEY}:${BUNI_CONSUMER_SECRET}`).toString('base64');
-
   const res = await fetch(`${BUNI_TOKEN_URL}?grant_type=client_credentials`, {
     method: 'POST',
     headers: {
-      'Authorization': `Basic ${basic}`,
-      'Content-Type':  'application/x-www-form-urlencoded',
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
+    body: new URLSearchParams({
+      grant_type:    'client_credentials',
+      client_id:     BUNI_CONSUMER_KEY,
+      client_secret: BUNI_CONSUMER_SECRET,
+    }),
   });
 
   if (!res.ok) {
