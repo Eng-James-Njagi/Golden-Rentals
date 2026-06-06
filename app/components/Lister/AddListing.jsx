@@ -238,9 +238,9 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
     const file = e.target.files?.[ 0 ] ?? null;
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors(prev => ({ ...prev, video: 'Video exceeds 5 MB' }));
-      toast.error('Video exceeds 5 MB. Please upload a smaller file.');
+    if (file.size > 50 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, video: 'Video exceeds 50 MB' }));
+      toast.error('Video exceeds 50 MB. Please upload a smaller file.');
       return;
     }
 
