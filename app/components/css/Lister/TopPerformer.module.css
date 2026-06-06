@@ -1,49 +1,56 @@
 /* ── Wrapper ── */
 .wrapper {
   display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: 0.6rem;
-  width: 100%;
+  grid-template-columns: 1fr 290px;
+  width: 96%;
+  margin: 0 auto 0.75rem;
+  gap: 8px;
   margin-bottom: 0.75rem;
 }
 
 /* ── Skeleton ── */
 .skeleton {
   grid-column: 1 / -1;
-  height: 180px;
-  border-radius: 10px;
+  height: 185px;
+  border-radius: 8px;
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ── Main card ── */
 .mainCard {
   display: flex;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #d1d5db;
   background: #fff;
-  min-height: 200px;
+  height: 260px;
 }
 
 /* ── Image block ── */
 .imageBlock {
-  width: 42%;
+  width: 38%;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
+  border-right: 1px solid #e5e7eb;
 }
 
 .propImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -56,11 +63,12 @@
 /* ── Details ── */
 .details {
   flex: 1;
-  padding: 0.85rem 1rem;
+  padding: 0.65rem 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 8px;
   overflow: hidden;
+  min-width: 0;
 }
 
 .detailsHeader {
@@ -71,20 +79,22 @@
 }
 
 .badge {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  text-transform: none;
+  font-family: var(--font-geist-sans);
+  letter-spacing: 0;
   color: #6b7280;
 }
 
 .moreInfo {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 600;
+  font-family: var(--font-geist-mono);
   color: #111827;
   text-decoration: none;
   white-space: nowrap;
-  opacity: 0.7;
+  opacity: 0.6;
   transition: opacity 0.15s;
 }
 
@@ -92,12 +102,14 @@
   opacity: 1;
 }
 
+/* ── Property name ── */
 .propName {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
+  font-family: var(--font-geist-sans);
   color: #111827;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -107,13 +119,15 @@
 .location {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.3rem;
+  align-items: center;
 }
 
 .locChip {
   display: flex;
   align-items: center;
-  gap: 0.2rem;
+  font-family: var(--font-inter);
+  gap: 0.18rem;
   font-size: 0.68rem;
   color: #16a34a;
   font-weight: 500;
@@ -128,19 +142,22 @@
 .price {
   display: flex;
   align-items: baseline;
-  gap: 0.2rem;
+  font-family: var(--font-inter);
+  gap: 0.25rem;
+  margin-top: 0.05rem;
 }
 
 .priceAmount {
-  font-size: 1.4rem;
+  font-size: 1.85rem;
+  font-family: var(--font-geist-sans);
   font-weight: 800;
   color: #111827;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   line-height: 1;
 }
 
 .priceMo {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: #6b7280;
   font-weight: 500;
 }
@@ -149,14 +166,15 @@
 .metrics {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 0.2rem;
+  gap: 0.28rem;
+  margin-top: auto;
+  font-family: var(--font-geist-sans);
 }
 
 .metric {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.15rem;
 }
 
 .metricRow {
@@ -166,45 +184,48 @@
 }
 
 .metricLabel {
-  font-size: 0.68rem;
+  font-size: 14px;
   font-weight: 600;
   color: #374151;
+  letter-spacing: 0;
 }
 
 .metricValue {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #111827;
+  font-family: var(--font-inter);
 }
 
 .metricTrack {
   width: 100%;
-  height: 5px;
+  height: 15px;
   background: #e5e7eb;
   border-radius: 99px;
-  overflow: hidden;
+  font-family: var(--font-geist-sans);
 }
 
 .metricFill {
   height: 100%;
+  min-width: 5px;
   background: #16a34a;
   border-radius: 99px;
-  transition: width 0.5s ease;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Side stack ── */
 .sideStack {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.45rem;
 }
 
 /* ── Review card ── */
 .reviewCard {
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  padding: 0.6rem 0.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -214,59 +235,66 @@
 }
 
 .reviewCardLabel {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: none;
+  font-family:var(--font-geist-sans);
+  letter-spacing: 0;
+  color: #374151;
+  line-height: 1.3;
 }
 
 .reviewCardBig {
-  font-size: 2rem;
+  font-size: 2.2rem;
+  font-family:var(--font-inter);
   font-weight: 800;
   color: #111827;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
 }
 
 /* ── Rating card ── */
 .ratingCard {
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  padding: 0.6rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.22rem;
 }
 
 .ratingLabel {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: none;
+  font-family:var(--font-geist-sans);
+  letter-spacing: 0;
+  color: #374151;
 }
 
 .ratingRow {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .ratingNum {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-family:var(--font-inter);
+  font-weight: 800;
   color: #111827;
+  letter-spacing: -0.02em;
 }
 
 .stars {
   display: flex;
   gap: 1px;
+  align-items: center;
 }
 
 .star {
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   line-height: 1;
 }
 
@@ -276,7 +304,7 @@
 
 .starHalf {
   color: #f59e0b;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 .starEmpty {
@@ -285,16 +313,16 @@
 
 /* ── Second card ── */
 .secondCard {
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  padding: 0.55rem 0.65rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex: 1;
-  min-height: 60px;
+  min-height: 56px;
 }
 
 .secondCardPlaceholder {
@@ -302,37 +330,42 @@
 }
 
 .placeholderText {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: #9ca3af;
+  font-family:var(--font-geist-sans);
   font-weight: 500;
 }
 
 .secondInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.1rem;
   min-width: 0;
 }
 
 .secondName {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
   color: #111827;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.2;
+  max-width: 105px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .secondStats {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.08rem;
+  margin-top: 0.1rem;
 }
 
 .secondStats span {
-  font-size: 0.65rem;
-  color: #6b7280;
+  font-size: 0.64rem;
+  color: #374151;
   font-weight: 500;
 }
 
@@ -341,11 +374,12 @@
 }
 
 .secondThumb {
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   border-radius: 6px;
   overflow: hidden;
   flex-shrink: 0;
+  border: 1px solid #e5e7eb;
 }
 
 .thumbImg {
@@ -361,40 +395,46 @@
   background: #e5e7eb;
 }
 
+/* ── Empty state ── */
 .emptyPerformer {
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  font-family:var(--font-geist-sans);
   padding: 1rem 1.25rem;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px dashed #d1d5db;
-  color: #000000;
+  color: #111827;
   font-size: 0.8rem;
   font-weight: 500;
-  font-family:var(--font-geist-sans);
 }
 
 .emptyPerformer svg {
   flex-shrink: 0;
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 /* ── 980px ── */
 @media (max-width: 980px) {
   .wrapper {
-    grid-template-columns: 1fr 190px;
+    grid-template-columns: 1fr 175px;
   }
 
   .priceAmount {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
 }
 
-/* ── 780px: stack vertically ── */
+/* ── 780px ── */
 @media (max-width: 780px) {
   .wrapper {
     grid-template-columns: 1fr;
+  }
+
+  .mainCard {
+    height: auto;
+    min-height: 160px;
   }
 
   .sideStack {
@@ -408,7 +448,7 @@
   }
 
   .imageBlock {
-    width: 38%;
+    width: 36%;
   }
 }
 
@@ -420,26 +460,27 @@
 
   .mainCard {
     flex-direction: column;
+    height: auto;
   }
 
   .imageBlock {
     width: 100%;
-    height: 160px;
+    height: 150px;
   }
 
   .priceAmount {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
   }
 
   .reviewCardBig {
-    font-size: 1.6rem;
+    font-size: 1.7rem;
   }
 }
 
 /* ── 320px ── */
 @media (max-width: 320px) {
   .details {
-    padding: 0.65rem 0.75rem;
+    padding: 0.6rem 0.7rem;
   }
 
   .propName {

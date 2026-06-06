@@ -81,7 +81,7 @@ export default function ListerLand() {
 
   return (
     <>
-      <ListerTopBar username={listerInfo.username} isNew={listerInfo.isNew} />
+      {/*<ListerTopBar username={listerInfo.username} isNew={listerInfo.isNew} /> */}
       <ListerNav
         orgImage={listerProfile?.profile_image_url ?? null}
         orgName={listerProfile?.lister_org ?? ''}
