@@ -1,39 +1,41 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/cloudinary';
 
 const PAGE_SIZE = 20;
 const PREFETCH_SIZE = 40;
 
-export const revalidate = 0; // disable cache — filters must always be fresh
+export const revalidate = 0;
 
+// ═══════════════════════════════════════════════════════════════
+// GET /api/listings — unchanged
+// ═══════════════════════════════════════════════════════════════
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
 
-  const page = parseInt(searchParams.get('page') ?? '1', 10);
+  const page     = parseInt(searchParams.get('page') ?? '1', 10);
   const prefetch = searchParams.get('prefetch') === 'true';
 
-  const limit = prefetch ? PREFETCH_SIZE : PAGE_SIZE;
+  const limit  = prefetch ? PREFETCH_SIZE : PAGE_SIZE;
   const offset = (page - 1) * PAGE_SIZE;
 
-  // parse filter params
-  const ward_id = searchParams.get('ward_id') ? parseInt(searchParams.get('ward_id'), 10) : null;
-  const category_id = searchParams.get('category_id') ? parseInt(searchParams.get('category_id'), 10) : null;
-  const type_ids = searchParams.get('type_ids') ? searchParams.get('type_ids').split(',').map(Number) : null;
-  const price_range = searchParams.get('price_range') || null;
-  const rent_duration = searchParams.get('rent_duration') || null;
+  const ward_id           = searchParams.get('ward_id')       ? parseInt(searchParams.get('ward_id'), 10)       : null;
+  const category_id       = searchParams.get('category_id')   ? parseInt(searchParams.get('category_id'), 10)   : null;
+  const type_ids          = searchParams.get('type_ids')       ? searchParams.get('type_ids').split(',').map(Number) : null;
+  const price_range       = searchParams.get('price_range')    || null;
+  const rent_duration     = searchParams.get('rent_duration')  || null;
   const property_interior = searchParams.get('property_interior') || null;
 
   const supabase = await createServerSupabaseClient();
 
-  // count query — must apply same filters
   let countQuery = supabase
     .from('Property_Listing')
     .select('listing_id', { count: 'exact', head: true });
 
-  if (ward_id) countQuery = countQuery.eq('ward_id', ward_id);
-  if (category_id) countQuery = countQuery.eq('category_id', category_id);
-  if (type_ids?.length) countQuery = countQuery.in('property_type_id', type_ids);
-  if (rent_duration) countQuery = countQuery.eq('rent_duration', rent_duration);
+  if (ward_id)           countQuery = countQuery.eq('ward_id', ward_id);
+  if (category_id)       countQuery = countQuery.eq('category_id', category_id);
+  if (type_ids?.length)  countQuery = countQuery.in('property_type_id', type_ids);
+  if (rent_duration)     countQuery = countQuery.eq('rent_duration', rent_duration);
   if (property_interior) countQuery = countQuery.ilike('property_interior', property_interior);
 
   const { count, error: countError } = await countQuery;
@@ -45,19 +47,16 @@ export async function GET(request) {
     );
   }
 
-  // RPC call with filters
   const { data, error } = await supabase.rpc('get_listings_paginated', {
-    p_limit: limit,
-    p_offset: offset,
-    p_ward_id: ward_id,
-    p_category_id: category_id,
-    p_type_ids: type_ids,
-    p_price_range: price_range,
-    p_rent_duration: rent_duration,
+    p_limit:             limit,
+    p_offset:            offset,
+    p_ward_id:           ward_id,
+    p_category_id:       category_id,
+    p_type_ids:          type_ids,
+    p_price_range:       price_range,
+    p_rent_duration:     rent_duration,
     p_property_interior: property_interior,
   });
-
-  
 
   if (error) {
     return NextResponse.json(
@@ -71,20 +70,24 @@ export async function GET(request) {
   return NextResponse.json({
     data,
     pagination: {
-      current_page: page,
-      total_pages: totalPages,
+      current_page:  page,
+      total_pages:   totalPages,
       total_records: count,
-      page_size: PAGE_SIZE,
-      has_next: page < totalPages,
-      has_prev: page > 1,
+      page_size:     PAGE_SIZE,
+      has_next:      page < totalPages,
+      has_prev:      page > 1,
     },
   });
 }
 
+// ═══════════════════════════════════════════════════════════════
+// POST /api/listings — uploads to Supabase + Cloudinary in parallel
+// ═══════════════════════════════════════════════════════════════
 export async function POST(request) {
   try {
     const supabase = await createServerSupabaseClient();
 
+    // ── Auth ──────────────────────────────────────────────────
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -105,11 +108,12 @@ export async function POST(request) {
     const property_price    = fd.get('property_price');
     const description       = fd.get('description');
 
+    // ── Validation ────────────────────────────────────────────
     const missing = [];
     for (const [key, val] of Object.entries({
       property_name, ward_id, ward_location, property_location,
       category_id, type_id, rent_duration, property_interior,
-      phone_number, property_price, description
+      phone_number, property_price, description,
     })) {
       if (!val || String(val).trim() === '') missing.push(key);
     }
@@ -117,11 +121,11 @@ export async function POST(request) {
       return NextResponse.json({ error: `Missing required fields: ${missing.join(', ')}` }, { status: 400 });
     }
 
-    // Insert listing first to get listing_id
+    // ── Insert listing row first to get listing_id ────────────
     const { data: listing, error: listingError } = await supabase
       .from('Property_Listing')
       .insert({
-        user_id:        user.id,
+        user_id:          user.id,
         property_name,
         ward_id:          parseInt(ward_id, 10),
         ward_name,
@@ -142,75 +146,111 @@ export async function POST(request) {
       return NextResponse.json({ error: listingError.message }, { status: 500 });
     }
 
-    // Upload images and insert into images_table
-    for (let i = 0; i < 3; i++) {
-      const file = fd.get(`image_${i}`);
-      if (!file || !(file instanceof File)) {
-        return NextResponse.json({ error: `image_${i} is required` }, { status: 400 });
+    const listingId = listing.listing_id;
+
+    // ── Upload media ──────────────────────────────────────────
+    // Track Cloudinary uploads for rollback on failure
+    const cloudinaryUploaded = [];
+
+    try {
+      // ── Images ──
+      for (let i = 0; i < 3; i++) {
+        const file = fd.get(`image_${i}`);
+        if (!file || !(file instanceof File) || file.size === 0) {
+          throw new Error(`image_${i} is required`);
+        }
+
+        const ext            = file.name.split('.').pop();
+        const supabasePath   = `listings/${user.id}/${listingId}_${i}.${ext}`;
+        const cloudinaryFolder = `pedu-rentals/listings/${listingId}/images`;
+
+        // Upload to both in parallel
+        const [supabaseUpload, cloudinaryResult] = await Promise.all([
+          supabase.storage
+            .from('Properties')
+            .upload(supabasePath, file, { contentType: file.type }),
+          uploadToCloudinary(file, 'image', cloudinaryFolder),
+        ]);
+
+        if (supabaseUpload.error) {
+          throw new Error(`Supabase image upload failed: ${supabaseUpload.error.message}`);
+        }
+
+        // Track for rollback
+        cloudinaryUploaded.push({ public_id: cloudinaryResult.public_id, type: 'image' });
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('Properties')
+          .getPublicUrl(supabasePath);
+
+        // Insert row with both URLs
+        const { error: imageRowError } = await supabase
+          .from('images_table')
+          .insert({
+            listing_id:           listingId,
+            image_url:            publicUrl,
+            cloudinary_public_id: cloudinaryResult.public_id,
+            cloudinary_url:       cloudinaryResult.secure_url,
+            video_url:            null,
+            position:             i + 1,
+            storage_provider:     'both',
+          });
+
+        if (imageRowError) throw new Error(imageRowError.message);
       }
 
-      const ext = file.name.split('.').pop();
-      const path = `listings/${user.id}/${listing.listing_id}_${i}.${ext}`;
+      // ── Video (optional) ──
+      const video = fd.get('video');
+      if (video instanceof File && video.size > 0) {
+        const ext            = video.name.split('.').pop();
+        const supabasePath   = `listings/${user.id}/${listingId}_video.${ext}`;
+        const cloudinaryFolder = `pedu-rentals/listings/${listingId}/videos`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('Properties')
-        .upload(path, file, { contentType: file.type });
+        const [supabaseUpload, cloudinaryResult] = await Promise.all([
+          supabase.storage
+            .from('Properties')
+            .upload(supabasePath, video, { contentType: video.type }),
+          uploadToCloudinary(video, 'video', cloudinaryFolder),
+        ]);
 
-      if (uploadError) {
-        return NextResponse.json({ error: `Image upload failed: ${uploadError.message}` }, { status: 500 });
+        if (supabaseUpload.error) {
+          throw new Error(`Supabase video upload failed: ${supabaseUpload.error.message}`);
+        }
+
+        cloudinaryUploaded.push({ public_id: cloudinaryResult.public_id, type: 'video' });
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('Properties')
+          .getPublicUrl(supabasePath);
+
+        const { error: videoRowError } = await supabase
+          .from('images_table')
+          .insert({
+            listing_id:           listingId,
+            image_url:            null,
+            cloudinary_public_id: cloudinaryResult.public_id,
+            cloudinary_url:       cloudinaryResult.secure_url,
+            video_url:            publicUrl,
+            position:             0,
+            storage_provider:     'both',
+          });
+
+        if (videoRowError) throw new Error(videoRowError.message);
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('Properties')
-        .getPublicUrl(path);
-
-      const { error: imageRowError } = await supabase
-        .from('images_table')
-        .insert({
-          listing_id: listing.listing_id,
-          image_url:  publicUrl,
-          video_url:  null,
-          position:   i + 1,
-        });
-
-      if (imageRowError) {
-        return NextResponse.json({ error: imageRowError.message }, { status: 500 });
+    } catch (mediaErr) {
+      // ── Rollback Cloudinary ──
+      for (const { public_id, type } of cloudinaryUploaded) {
+        await deleteFromCloudinary(public_id, type);
       }
+
+      // ── Rollback listing row ──
+      await supabase.from('Property_Listing').delete().eq('listing_id', listingId);
+
+      return NextResponse.json({ error: mediaErr.message }, { status: 500 });
     }
 
-    // Video — optional
-    const video = fd.get('video');
-    if (video instanceof File && video.size > 0) {
-      const ext = video.name.split('.').pop();
-      const path = `listings/${user.id}/${listing.listing_id}_video.${ext}`;
-
-      const { error: videoUploadError } = await supabase.storage
-        .from('Properties')
-        .upload(path, video, { contentType: video.type });
-
-      if (videoUploadError) {
-        return NextResponse.json({ error: `Video upload failed: ${videoUploadError.message}` }, { status: 500 });
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('Properties')
-        .getPublicUrl(path);
-
-      const { error: videoRowError } = await supabase
-        .from('images_table')
-        .insert({
-          listing_id: listing.listing_id,
-          image_url:  null,
-          video_url:  publicUrl,
-          position:   0,
-        });
-
-      if (videoRowError) {
-        return NextResponse.json({ error: videoRowError.message }, { status: 500 });
-      }
-    }
-
-    return NextResponse.json({ listing_id: listing.listing_id }, { status: 201 });
+    return NextResponse.json({ listing_id: listingId }, { status: 201 });
 
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
