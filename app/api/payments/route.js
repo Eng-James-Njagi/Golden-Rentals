@@ -65,6 +65,10 @@ async function isMpesaEnabled(supabase) {
 // ═══════════════════════════════════════════════════════════════
 export async function POST(request) {
   try {
+    console.log('BUNI_TOKEN_URL:', process.env.BUNI_TOKEN_URL);
+    console.log('BUNI_BASE_URL:', process.env.BUNI_BASE_URL);
+    console.log('BUNI_CONSUMER_KEY length:', process.env.BUNI_CONSUMER_KEY?.length);
+
     const body = await request.json();
     const { action } = body;
 
