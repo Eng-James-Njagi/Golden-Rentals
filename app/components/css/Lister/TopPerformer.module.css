@@ -401,6 +401,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  font-family:var(--font-geist-sans);
   padding: 1rem 1.25rem;
   border-radius: 8px;
   border: 1px dashed #d1d5db;
