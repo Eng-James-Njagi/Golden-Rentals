@@ -2,7 +2,6 @@
 import styles from '../css/Lister/ListerTopBar.module.css';
 
 export default function ListerTopBar({ username, isNew }) {
-   console.log('ListerTopBar rendering:', { username, isNew });
    
   const greeting = isNew
     ? `Hi, ${username} 👋`

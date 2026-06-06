@@ -13,11 +13,14 @@ export default function AddSlotCard({ onSlotAdded }) {
    const [ errorMsg, setErrorMsg ] = useState('');
    const [ open, setOpen ] = useState(false);
 
-   useEffect(() => {
-      fetch('/api/adminRo/settings')
-         .then(r => r.json())
-         .then(data => setMpesaEnabled(data.mpesa_enabled));
-   }, []);
+ useEffect(() => {
+   fetch('/api/adminRo/settings')
+      .then(r => r.json())
+      .then(data => {
+         setMpesaEnabled(data.mpesa_enabled === true || data.mpesa_enabled === 'true');
+      })
+      .catch(() => setMpesaEnabled(false));
+}, []);
 
    const totalKes = SLOT_PRICE_KES * quantity;
 
@@ -42,7 +45,8 @@ export default function AddSlotCard({ onSlotAdded }) {
       setErrorMsg('');
 
       try {
-         const res = await fetch('/api/subscription', {
+         // ── CHANGED: Updated target route from /api/subscription to /api/payments ──
+         const res = await fetch('/api/payments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -54,6 +58,8 @@ export default function AddSlotCard({ onSlotAdded }) {
 
          const json = await res.json();
          if (!res.ok) throw new Error(json.error ?? 'Request failed.');
+
+         if (!json.success) throw new Error(json.error ?? 'Unknown error');
 
          if (mpesaEnabled && json.CheckoutRequestID) {
             await pollForCompletion(json.CheckoutRequestID);
@@ -71,7 +77,9 @@ export default function AddSlotCard({ onSlotAdded }) {
    const pollForCompletion = async (checkoutId) => {
       for (let i = 0; i < 12; i++) {
          await new Promise(r => setTimeout(r, 5000));
-         const res = await fetch(`/api/subscription?checkout_request_id=${checkoutId}`);
+
+         // ── CHANGED: Updated target polling route to use /api/payments ──
+         const res = await fetch(`/api/payments?checkout_request_id=${checkoutId}`);
          const json = await res.json();
 
          if (json.payment_status === 'complete') return;
