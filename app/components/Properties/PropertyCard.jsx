@@ -23,7 +23,8 @@ export default function PropertyCard({ listing, onWardClick }) {
 
 
 
-  const firstImage = media?.find(m => m.image_url)?.image_url ?? null;
+  const firstMediaWithImage = media?.find(m => m.cloudinary_url || m.image_url);
+  const firstImage = firstMediaWithImage?.cloudinary_url ?? firstMediaWithImage?.image_url ?? null;
   const furnished = property_interior?.toLowerCase();
 
   const handleWardClick = (e) => {

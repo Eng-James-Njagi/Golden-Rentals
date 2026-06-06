@@ -47,22 +47,23 @@ export default function PropertyHero({ listing }) {
 
   // Build ordered media items — each has either image_url or video_url (or both; image used as video poster)
   const mediaItems = (media ?? [])
-    .filter(m => m.image_url || m.video_url)
+    .filter(m => m.image_url || m.cloudinary_url || m.video_url)
     .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
     .flatMap(m => {
-      if (m.image_url && m.video_url) {
+      const imageUrl = m.cloudinary_url ?? m.image_url ?? null;
+      if (imageUrl && m.video_url) {
         return [
           { image_url: null, video_url: m.video_url, position: -1 },
-          { image_url: m.image_url, video_url: null, position: m.position },
+          { image_url: imageUrl, video_url: null, position: m.position },
         ];
       }
-      return [ m ];
+      return [ { ...m, image_url: m.cloudinary_url ?? m.image_url } ];
     });
 
   const [ activeIndex, setActiveIndex ] = useState(0);
   const active = mediaItems[ activeIndex ] ?? null;
   const furnished = property_interior?.toLowerCase();
-  
+
 
   return (
     <section className={styles.hero}>
@@ -157,7 +158,7 @@ export default function PropertyHero({ listing }) {
         </div>
 
         {(Number(review_count) > 0 || Number(avg_rating) > 0) && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily:'var(--font-inter)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-inter)' }}>
             <StarRating rating={Number(avg_rating) ?? 0} />
             <span style={{ fontSize: '0.875rem', color: '#374151' }}>
               {Number(avg_rating) ?? 0} ({Number(review_count) ?? 0} {Number(review_count) === 1 ? 'review' : 'reviews'})

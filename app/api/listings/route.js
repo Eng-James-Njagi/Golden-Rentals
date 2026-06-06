@@ -212,6 +212,16 @@ export async function POST(request) {
       }
 
       if (video instanceof File && video.size > 0) {
+        const ext = video.name.split('.').pop();
+        const supabasePath = `listings/${user.id}/${listingId}_video.${ext}`;
+        const cloudinaryFolder = `pedu-rentals/listings/${listingId}/videos`;
+
+        const [ supabaseUpload, cloudinaryResult ] = await Promise.all([
+          supabase.storage
+            .from('Properties')
+            .upload(supabasePath, video, { contentType: video.type }),
+          uploadToCloudinary(video, 'video', cloudinaryFolder),
+        ]);
 
         if (supabaseUpload.error) {
           throw new Error(`Supabase video upload failed: ${supabaseUpload.error.message}`);
