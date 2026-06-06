@@ -13,14 +13,14 @@ export default function AddSlotCard({ onSlotAdded }) {
    const [ errorMsg, setErrorMsg ] = useState('');
    const [ open, setOpen ] = useState(false);
 
-   useEffect(() => {
-      fetch('/api/adminRo/settings')
-         .then(r => r.json())
-         .then(data => {
-            setMpesaEnabled(data.mpesa_enabled === true || data.mpesa_enabled === 'true');
-         })
-         .catch(() => setMpesaEnabled(false));
-   }, []);
+ useEffect(() => {
+   fetch('/api/adminRo/settings')
+      .then(r => r.json())
+      .then(data => {
+         setMpesaEnabled(data.mpesa_enabled === true || data.mpesa_enabled === 'true');
+      })
+      .catch(() => setMpesaEnabled(false));
+}, []);
 
    const totalKes = SLOT_PRICE_KES * quantity;
 
@@ -58,6 +58,8 @@ export default function AddSlotCard({ onSlotAdded }) {
 
          const json = await res.json();
          if (!res.ok) throw new Error(json.error ?? 'Request failed.');
+
+         if (!json.success) throw new Error(json.error ?? 'Unknown error');
 
          if (mpesaEnabled && json.CheckoutRequestID) {
             await pollForCompletion(json.CheckoutRequestID);
