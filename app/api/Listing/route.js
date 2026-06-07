@@ -1,6 +1,7 @@
 // app/api/Listing/route.js
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { deleteFromCloudinary } from '@/lib/cloudinary';
 
 const PAGE_SIZE = 20;
 
@@ -35,7 +36,7 @@ export async function GET(request) {
     created_at,
     category_id,
     property_type_id,
-    images_table ( image_url, video_url, position ),
+    images_table ( image_url, cloudinary_url, video_url, position ),
     property_categories ( category_name ),
     property_types ( type_name )
   `, { count: 'exact' })
@@ -92,15 +93,50 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'listing_id is required' }, { status: 400 });
     }
 
-    // .eq('user_id', user.id) enforces ownership — no separate fetch needed
-    const { error } = await supabase
+    // ── Verify ownership before touching anything ─────────────
+    const { data: listing, error: ownerError } = await supabase
+      .from('Property_Listing')
+      .select('listing_id')
+      .eq('listing_id', listing_id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (ownerError || !listing) {
+      return NextResponse.json({ error: 'Listing not found or access denied' }, { status: 404 });
+    }
+
+    // ── Fetch Cloudinary assets for this listing ──────────────
+    const { data: mediaRows, error: mediaError } = await supabase
+      .from('images_table')
+      .select('cloudinary_public_id, position')
+      .eq('listing_id', listing_id)
+      .not('cloudinary_public_id', 'is', null);
+
+    if (mediaError) {
+      return NextResponse.json({ error: mediaError.message }, { status: 500 });
+    }
+
+    // ── Delete from Cloudinary ────────────────────────────────
+    if (mediaRows?.length) {
+      await Promise.allSettled(
+        mediaRows.map(row =>
+          deleteFromCloudinary(
+            row.cloudinary_public_id,
+            row.position === 0 ? 'video' : 'image'
+          )
+        )
+      );
+    }
+
+    // ── Delete listing row (cascades to images_table if FK set) ─
+    const { error: deleteError } = await supabase
       .from('Property_Listing')
       .delete()
       .eq('listing_id', listing_id)
       .eq('user_id', user.id);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

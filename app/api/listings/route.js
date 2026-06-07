@@ -84,6 +84,10 @@ export async function GET(request) {
 // ═══════════════════════════════════════════════════════════════
 // POST /api/listings — uploads to Supabase + Cloudinary in parallel
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// POST /api/listings — Cloudinary-only media upload
+// Supabase Storage removed. images_table stores cloudinary_url only.
+// ═══════════════════════════════════════════════════════════════
 export async function POST(request) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -96,22 +100,22 @@ export async function POST(request) {
 
     const fd = await request.formData();
 
-    const property_name = fd.get('property_name');
-    const ward_id = fd.get('ward_id');
-    const ward_name = fd.get('ward_name');
-    const ward_location = fd.get('ward_location');
+    const property_name     = fd.get('property_name');
+    const ward_id           = fd.get('ward_id');
+    const ward_name         = fd.get('ward_name');
+    const ward_location     = fd.get('ward_location');
     const property_location = fd.get('property_location');
-    const category_id = fd.get('category_id');
-    const type_id = fd.get('type_id');
-    const rent_duration = fd.get('rent_duration');
+    const category_id       = fd.get('category_id');
+    const type_id           = fd.get('type_id');
+    const rent_duration     = fd.get('rent_duration');
     const property_interior = fd.get('property_interior');
-    const phone_number = fd.get('phone_number');
-    const property_price = fd.get('property_price');
-    const description = fd.get('description');
+    const phone_number      = fd.get('phone_number');
+    const property_price    = fd.get('property_price');
+    const description       = fd.get('description');
 
     // ── Validation ────────────────────────────────────────────
     const missing = [];
-    for (const [ key, val ] of Object.entries({
+    for (const [key, val] of Object.entries({
       property_name, ward_id, ward_location, property_location,
       category_id, type_id, rent_duration, property_interior,
       phone_number, property_price, description,
@@ -119,24 +123,27 @@ export async function POST(request) {
       if (!val || String(val).trim() === '') missing.push(key);
     }
     if (missing.length > 0) {
-      return NextResponse.json({ error: `Missing required fields: ${missing.join(', ')}` }, { status: 400 });
+      return NextResponse.json(
+        { error: `Missing required fields: ${missing.join(', ')}` },
+        { status: 400 }
+      );
     }
 
     // ── Insert listing row first to get listing_id ────────────
     const { data: listing, error: listingError } = await supabase
       .from('Property_Listing')
       .insert({
-        user_id: user.id,
+        user_id:          user.id,
         property_name,
-        ward_id: parseInt(ward_id, 10),
+        ward_id:          parseInt(ward_id, 10),
         ward_name,
         ward_location,
         property_location,
-        category_id: parseInt(category_id, 10),
+        category_id:      parseInt(category_id, 10),
         property_type_id: parseInt(type_id, 10),
         rent_duration,
         property_interior,
-        phone_number: parseInt(phone_number, 10),
+        phone_number:     parseInt(phone_number, 10),
         property_price,
         description,
       })
@@ -149,14 +156,14 @@ export async function POST(request) {
 
     const listingId = listing.listing_id;
 
-    // ── Upload media ──────────────────────────────────────────
-    // Track Cloudinary uploads for rollback on failure
-    const cloudinaryUploaded = [];
+    // ── Upload media to Cloudinary only ───────────────────────
+    const cloudinaryUploaded = []; // tracked for rollback
 
     try {
       // ── Images ──
       for (let i = 0; i < 3; i++) {
         const file = fd.get(`image_${i}`);
+
         if (!file || !(file instanceof File) || file.size === 0) {
           throw new Error(`image_${i} is required`);
         }
@@ -164,40 +171,24 @@ export async function POST(request) {
           throw new Error(`image_${i} exceeds 5 MB`);
         }
 
-        const ext = file.name.split('.').pop();
-        const supabasePath = `listings/${user.id}/${listingId}_${i}.${ext}`;
-        const cloudinaryFolder = `pedu-rentals/listings/${listingId}/images`;
+        const cloudinaryResult = await uploadToCloudinary(
+          file,
+          'image',
+          `pedu-rentals/listings/${listingId}/images`
+        );
 
-        // Upload to both in parallel
-        const [ supabaseUpload, cloudinaryResult ] = await Promise.all([
-          supabase.storage
-            .from('Properties')
-            .upload(supabasePath, file, { contentType: file.type }),
-          uploadToCloudinary(file, 'image', cloudinaryFolder),
-        ]);
-
-        if (supabaseUpload.error) {
-          throw new Error(`Supabase image upload failed: ${supabaseUpload.error.message}`);
-        }
-
-        // Track for rollback
         cloudinaryUploaded.push({ public_id: cloudinaryResult.public_id, type: 'image' });
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('Properties')
-          .getPublicUrl(supabasePath);
-
-        // Insert row with both URLs
         const { error: imageRowError } = await supabase
           .from('images_table')
           .insert({
-            listing_id: listingId,
-            image_url: publicUrl,
+            listing_id:           listingId,
+            image_url:            null,
             cloudinary_public_id: cloudinaryResult.public_id,
-            cloudinary_url: cloudinaryResult.secure_url,
-            video_url: null,
-            position: i + 1,
-            storage_provider: 'both',
+            cloudinary_url:       cloudinaryResult.secure_url,
+            video_url:            null,
+            position:             i + 1,
+            storage_provider:     'cloudinary',
           });
 
         if (imageRowError) throw new Error(imageRowError.message);
@@ -207,54 +198,40 @@ export async function POST(request) {
       const video = fd.get('video');
 
       if (video instanceof File && video.size > MAX_VIDEO_BYTES) {
-        await supabase.from('Property_Listing').delete().eq('listing_id', listingId);
-        return NextResponse.json({ error: 'Video exceeds 50 MB' }, { status: 400 });
+        throw new Error('Video exceeds 50 MB');
       }
 
       if (video instanceof File && video.size > 0) {
-        const ext = video.name.split('.').pop();
-        const supabasePath = `listings/${user.id}/${listingId}_video.${ext}`;
-        const cloudinaryFolder = `pedu-rentals/listings/${listingId}/videos`;
-
-        const [ supabaseUpload, cloudinaryResult ] = await Promise.all([
-          supabase.storage
-            .from('Properties')
-            .upload(supabasePath, video, { contentType: video.type }),
-          uploadToCloudinary(video, 'video', cloudinaryFolder),
-        ]);
-
-        if (supabaseUpload.error) {
-          throw new Error(`Supabase video upload failed: ${supabaseUpload.error.message}`);
-        }
+        const cloudinaryResult = await uploadToCloudinary(
+          video,
+          'video',
+          `pedu-rentals/listings/${listingId}/videos`
+        );
 
         cloudinaryUploaded.push({ public_id: cloudinaryResult.public_id, type: 'video' });
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('Properties')
-          .getPublicUrl(supabasePath);
 
         const { error: videoRowError } = await supabase
           .from('images_table')
           .insert({
-            listing_id: listingId,
-            image_url: null,
+            listing_id:           listingId,
+            image_url:            null,
             cloudinary_public_id: cloudinaryResult.public_id,
-            cloudinary_url: cloudinaryResult.secure_url,
-            video_url: publicUrl,
-            position: 0,
-            storage_provider: 'both',
+            cloudinary_url:       cloudinaryResult.secure_url,
+            video_url:            null,
+            position:             0,
+            storage_provider:     'cloudinary',
           });
 
         if (videoRowError) throw new Error(videoRowError.message);
       }
 
     } catch (mediaErr) {
-      // ── Rollback Cloudinary ──
+      // ── Rollback: delete Cloudinary assets ──
       for (const { public_id, type } of cloudinaryUploaded) {
         await deleteFromCloudinary(public_id, type);
       }
 
-      // ── Rollback listing row ──
+      // ── Rollback: delete listing row ──
       await supabase.from('Property_Listing').delete().eq('listing_id', listingId);
 
       return NextResponse.json({ error: mediaErr.message }, { status: 500 });
