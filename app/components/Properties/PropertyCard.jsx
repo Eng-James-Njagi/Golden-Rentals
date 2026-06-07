@@ -23,7 +23,10 @@ export default function PropertyCard({ listing, onWardClick }) {
 
 
 
-  const firstMediaWithImage = media?.find(m => m.cloudinary_url || m.image_url);
+  const firstMediaWithImage = media
+    ?.filter(m => m.position !== 0)
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+    .find(m => m.cloudinary_url || m.image_url);
   const firstImage = firstMediaWithImage?.cloudinary_url ?? firstMediaWithImage?.image_url ?? null;
   const furnished = property_interior?.toLowerCase();
 

@@ -45,19 +45,23 @@ export default function PropertyHero({ listing }) {
 
 
 
-  // Build ordered media items — each has either image_url or video_url (or both; image used as video poster)
   const mediaItems = (media ?? [])
-    .filter(m => m.image_url || m.cloudinary_url || m.video_url)
+    .filter(m => m.cloudinary_url || m.image_url || m.video_url)
     .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-    .flatMap(m => {
-      const imageUrl = m.cloudinary_url ?? m.image_url ?? null;
-      if (imageUrl && m.video_url) {
-        return [
-          { image_url: null, video_url: m.video_url, position: -1 },
-          { image_url: imageUrl, video_url: null, position: m.position },
-        ];
+    .map(m => {
+      const isVideo = m.position === 0;
+      if (isVideo) {
+        return {
+          video_url: m.cloudinary_url ?? m.video_url,
+          image_url: null,
+          position: m.position,
+        };
       }
-      return [ { ...m, image_url: m.cloudinary_url ?? m.image_url } ];
+      return {
+        image_url: m.cloudinary_url ?? m.image_url,
+        video_url: null,
+        position: m.position,
+      };
     });
 
   const [ activeIndex, setActiveIndex ] = useState(0);

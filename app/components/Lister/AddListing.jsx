@@ -288,7 +288,8 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
   const validate = () => {
     const errs = {};
-    const MAX_BYTES = 5 * 1024 * 1024; //5 MB
+    const MAX_BYTES = 10 * 1024 * 1024; //10 MB
+    const VIDEO_MAX_BYTES = 50 * 1024 * 1024; //50 MB
 
     REQUIRED.forEach(field => {
       if (!form[ field ] || String(form[ field ]).trim() === '') {
@@ -320,9 +321,9 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
     });
 
-    if (form.video instanceof File && form.video.size > MAX_BYTES) {
-      errs.video = 'Video exceeds 5 MB';
-      toast.error("Video exceeds 5MB")
+    if (form.video instanceof File && form.video.size > VIDEO_MAX_BYTES) {
+      errs.video = 'Video exceeds 50 MB';
+      toast.error("Video exceeds 50MB")
     }
 
     return errs;
