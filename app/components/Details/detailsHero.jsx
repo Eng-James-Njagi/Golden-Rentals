@@ -158,7 +158,6 @@ export default function PropertyHero({ listing }) {
               stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
           <span className={styles.price}>KSH {Number(property_price).toLocaleString('en-KE')}</span>
-          <span className={styles.perMonth}>/mo</span>
         </div>
 
         {(Number(review_count) > 0 || Number(avg_rating) > 0) && (
