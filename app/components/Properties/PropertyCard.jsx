@@ -72,7 +72,6 @@ export default function PropertyCard({ listing, onWardClick }) {
               <path d="M12 7v10M9 9.5c0-1.38 1.34-2.5 3-2.5s3 1.12 3 2.5S13.66 12 12 12s-3 1.12-3 2.5S10.34 17 12 17s3-1.12 3-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
             </svg>
             <span className={styles.price}>KSH {Number(property_price).toLocaleString('en-KE')}</span>
-            <span className={styles.perMonth}>/mo</span>
           </div>
 
           <div className={styles.metaRow}>
