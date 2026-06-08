@@ -11,17 +11,17 @@ import FeedbackBanner from './components/FeedbackBanner';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  subsets: [ "latin" ],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: [ "latin" ],
 });
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
+  subsets: [ "latin" ],
 });
 
 export const metadata = {
@@ -32,7 +32,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-        <head>
+      <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -52,7 +52,7 @@ export default function RootLayout({ children }) {
         <Analytics />
         <SpeedInsights />
         <Toaster position="top-right" duration={4000} richColors />
-        <FeedbackBanner />
+        {/* <FeedbackBanner /> */}
         <Navbar />
         <main>
           <Providers>

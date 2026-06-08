@@ -6,7 +6,7 @@
   --darkSecondary:#DEA806;
   --secondary:#FFBF00;
   --accent:#0A7CFF;
-  --page-top-offset: 104px; /* nav ~64px + banner ~40px — fallback */
+  --page-top-offset: 64px; /* nav ~64px + banner ~40px — fallback */
 }
 
 html,
