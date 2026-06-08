@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image'
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { uploadListingMedia } from '@/lib/uploadMedia';
 import styles from '../css/Lister/AddListing.module.css';
 
 /* ─── Icon primitive ─── */
@@ -342,42 +343,84 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
     setServerError(null);
 
     try {
-      const fd = new FormData();
-      const selectedWard = filters.wards.find(w => w.ward_name === form.ward);
+      if (isEdit) {
+        const fd = new FormData();
+        const selectedWard = filters.wards.find(w => w.ward_name === form.ward);
 
-      fd.append('property_name', form.name);
-      fd.append('ward_name', form.ward);
-      fd.append('ward_id', selectedWard?.ward_id ?? '');
-      fd.append('ward_location', form.ward_location);
-      fd.append('property_location', form.property_location);
-      fd.append('category_id', form.category);
-      fd.append('type_id', form.type);
-      fd.append('rent_duration', form.duration);
-      fd.append('property_interior', form.furniture);
-      fd.append('phone_number', form.phone.replace(/\s/g, ''));
-      fd.append('property_price', form.price);
-      fd.append('description', form.description);
+        fd.append('property_name', form.name);
+        fd.append('ward_name', form.ward);
+        fd.append('ward_id', selectedWard?.ward_id ?? '');
+        fd.append('ward_location', form.ward_location);
+        fd.append('property_location', form.property_location);
+        fd.append('category_id', form.category);
+        fd.append('type_id', form.type);
+        fd.append('rent_duration', form.duration);
+        fd.append('property_interior', form.furniture);
+        fd.append('phone_number', form.phone.replace(/\s/g, ''));
+        fd.append('property_price', form.price);
+        fd.append('description', form.description);
 
-      // Images must be keyed as image_0, image_1, image_2 — API reads formData.get('image_0') etc.
-      form.images.forEach((file, i) => {
-        if (file) fd.append(`image_${i}`, file);
-      });
+        form.images.forEach((file, i) => {
+          if (file) fd.append(`image_${i}`, file);
+        });
+        if (form.video) fd.append('video', form.video);
 
-      if (form.video) fd.append('video', form.video);
+        const res = await fetch(`/api/listings/${prefill.listing_id}`, {
+          method: 'PATCH',
+          body: fd,
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error ?? 'Failed to update listing.');
 
-      const url = isEdit ? `/api/listings/${prefill.listing_id}` : '/api/AddListing';
-      const method = isEdit ? 'PATCH' : 'POST';
+        toast.success('Listing updated!');
+        onDone?.();
 
-      {/*console.table(Object.fromEntries(fd)); */ }
-      const res = await fetch(url, { method, body: fd });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? (isEdit ? 'Failed to update listing.' : 'Failed to post listing.'));
-
-      toast.success(isEdit ? 'Listing updated!' : 'Property posted successfully!');
-
-      if (isEdit && onDone) {
-        onDone();
       } else {
+        const selectedWard = filters.wards.find(w => w.ward_name === form.ward);
+
+        // Step 1: insert text fields, get listing_id
+        const listingRes = await fetch('/api/AddListing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            property_name: form.name,
+            ward_name: form.ward,
+            ward_id: selectedWard?.ward_id ?? '',
+            ward_location: form.ward_location,
+            property_location: form.property_location,
+            category_id: form.category,
+            type_id: form.type,
+            rent_duration: form.duration,
+            property_interior: form.furniture,
+            phone_number: form.phone.replace(/\s/g, ''),
+            property_price: form.price,
+            description: form.description,
+          }),
+        });
+        const listingJson = await listingRes.json();
+        if (!listingRes.ok) throw new Error(listingJson.error ?? 'Failed to create listing.');
+
+        const listingId = listingJson.listing_id;
+
+        // Step 2: upload files directly from browser to Cloudinary
+        const media = await uploadListingMedia(
+          listingId,
+          form.images.filter(Boolean),
+          form.video ?? null
+        );
+
+        // Step 3: send URLs to Vercel
+        const mediaRes = await fetch('/api/AddListing/media', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ listing_id: listingId, media }),
+        });
+        const mediaJson = await mediaRes.json();
+        if (!mediaRes.ok) throw new Error(mediaJson.error ?? 'Failed to save media.');
+
+        toast.success('Property posted successfully!');
         setForm(EMPTY);
         setIsDirty(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
