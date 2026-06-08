@@ -365,7 +365,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
       if (form.video) fd.append('video', form.video);
 
-      const url = isEdit ? `/api/listings/${prefill.listing_id}` : '/api/listings';
+      const url = isEdit ? `/api/listings/${prefill.listing_id}` : '/api/AddListing';
       const method = isEdit ? 'PATCH' : 'POST';
 
       {/*console.table(Object.fromEntries(fd)); */ }
