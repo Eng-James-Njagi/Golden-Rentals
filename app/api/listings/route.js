@@ -17,7 +17,13 @@ export async function GET(request) {
   const page = parseInt(searchParams.get('page') ?? '1', 10);
   const prefetch = searchParams.get('prefetch') === 'true';
 
+  /*
   const limit = prefetch ? PREFETCH_SIZE : PAGE_SIZE;
+  So this was what was before to allow the prefetch of 40 listings but we have shifted it to
+  page size
+
+  */
+  const limit = PAGE_SIZE;
   const offset = (page - 1) * PAGE_SIZE;
 
   const ward_id = searchParams.get('ward_id') ? parseInt(searchParams.get('ward_id'), 10) : null;
@@ -100,22 +106,22 @@ export async function POST(request) {
 
     const fd = await request.formData();
 
-    const property_name     = fd.get('property_name');
-    const ward_id           = fd.get('ward_id');
-    const ward_name         = fd.get('ward_name');
-    const ward_location     = fd.get('ward_location');
+    const property_name = fd.get('property_name');
+    const ward_id = fd.get('ward_id');
+    const ward_name = fd.get('ward_name');
+    const ward_location = fd.get('ward_location');
     const property_location = fd.get('property_location');
-    const category_id       = fd.get('category_id');
-    const type_id           = fd.get('type_id');
-    const rent_duration     = fd.get('rent_duration');
+    const category_id = fd.get('category_id');
+    const type_id = fd.get('type_id');
+    const rent_duration = fd.get('rent_duration');
     const property_interior = fd.get('property_interior');
-    const phone_number      = fd.get('phone_number');
-    const property_price    = fd.get('property_price');
-    const description       = fd.get('description');
+    const phone_number = fd.get('phone_number');
+    const property_price = fd.get('property_price');
+    const description = fd.get('description');
 
     // ── Validation ────────────────────────────────────────────
     const missing = [];
-    for (const [key, val] of Object.entries({
+    for (const [ key, val ] of Object.entries({
       property_name, ward_id, ward_location, property_location,
       category_id, type_id, rent_duration, property_interior,
       phone_number, property_price, description,
@@ -133,17 +139,17 @@ export async function POST(request) {
     const { data: listing, error: listingError } = await supabase
       .from('Property_Listing')
       .insert({
-        user_id:          user.id,
+        user_id: user.id,
         property_name,
-        ward_id:          parseInt(ward_id, 10),
+        ward_id: parseInt(ward_id, 10),
         ward_name,
         ward_location,
         property_location,
-        category_id:      parseInt(category_id, 10),
+        category_id: parseInt(category_id, 10),
         property_type_id: parseInt(type_id, 10),
         rent_duration,
         property_interior,
-        phone_number:     parseInt(phone_number, 10),
+        phone_number: parseInt(phone_number, 10),
         property_price,
         description,
       })
@@ -182,13 +188,13 @@ export async function POST(request) {
         const { error: imageRowError } = await supabase
           .from('images_table')
           .insert({
-            listing_id:           listingId,
-            image_url:            null,
+            listing_id: listingId,
+            image_url: null,
             cloudinary_public_id: cloudinaryResult.public_id,
-            cloudinary_url:       cloudinaryResult.secure_url,
-            video_url:            null,
-            position:             i + 1,
-            storage_provider:     'cloudinary',
+            cloudinary_url: cloudinaryResult.secure_url,
+            video_url: null,
+            position: i + 1,
+            storage_provider: 'cloudinary',
           });
 
         if (imageRowError) throw new Error(imageRowError.message);
@@ -213,13 +219,13 @@ export async function POST(request) {
         const { error: videoRowError } = await supabase
           .from('images_table')
           .insert({
-            listing_id:           listingId,
-            image_url:            null,
+            listing_id: listingId,
+            image_url: null,
             cloudinary_public_id: cloudinaryResult.public_id,
-            cloudinary_url:       cloudinaryResult.secure_url,
-            video_url:            null,
-            position:             0,
-            storage_provider:     'cloudinary',
+            cloudinary_url: cloudinaryResult.secure_url,
+            video_url: null,
+            position: 0,
+            storage_provider: 'cloudinary',
           });
 
         if (videoRowError) throw new Error(videoRowError.message);
