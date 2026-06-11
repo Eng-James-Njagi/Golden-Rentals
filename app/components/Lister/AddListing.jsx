@@ -183,6 +183,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
   const [ showPopup, setShowPopup ] = useState(false);
   const [ submitting, setSubmitting ] = useState(false);
   const [ serverError, setServerError ] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(null);
 
   useEffect(() => {
     if (!prefill || filtersLoading) return;
@@ -208,6 +209,7 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
   const categoryOptions = filters.categories.map(c => ({ value: c.category_id, label: c.category_name }));
   const selectedCategory = filters.categories.find(c => String(c.category_id) === String(form.category));
   const typeOptions = (selectedCategory?.types ?? []).map(t => ({ value: t.type_id, label: t.type_name }));
+    const CIRCUMFERENCE = 2 * Math.PI * 45; // radius 45
 
   const handleChange = useCallback(e => {
     const { name, value } = e.target;
@@ -330,6 +332,58 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
     return errs;
   };
 
+
+  const UploadOverlay = ({ stage, percent }) => {
+    const offset = CIRCUMFERENCE - (percent / 100) * CIRCUMFERENCE;
+    const isDone = percent === 100;
+
+    return (
+      <div className={styles.uploadOverlay}>
+        <div className={styles.uploadCard}>
+
+          <div className={styles.uploadRingWrap}>
+            <svg viewBox="0 0 100 100" className={styles.uploadRingSvg}>
+              {/* Track */}
+              <circle
+                cx="50" cy="50" r="45"
+                fill="none"
+                stroke="var(--ring-track, #2a2a2a)"
+                strokeWidth="6"
+              />
+              {/* Progress arc */}
+              <circle
+                cx="50" cy="50" r="45"
+                fill="none"
+                stroke="var(--ring-fill, #C8A84B)"
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray={CIRCUMFERENCE}
+                strokeDashoffset={offset}
+                style={{ transition: 'stroke-dashoffset 0.5s ease', transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
+              />
+            </svg>
+
+            <div className={styles.uploadRingInner}>
+              {isDone
+                ? (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--ring-fill, #C8A84B)"
+                    strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    className={styles.uploadCheckIcon}>
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )
+                : <span className={styles.uploadPercent}>{percent}%</span>
+              }
+            </div>
+          </div>
+
+          <span className={styles.uploadStageLabel}>{stage}</span>
+
+        </div>
+      </div>
+    );
+  };
+
   const handleSubmit = async () => {
     if (!canAdd && !isEdit) return;
 
@@ -378,6 +432,9 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
       } else {
         const selectedWard = filters.wards.find(w => w.ward_name === form.ward);
 
+        // Show overlay
+        setUploadProgress({ stage: 'Uploading Images', percent: 0 });
+
         // Step 1: insert text fields, get listing_id
         const listingRes = await fetch('/api/AddListing', {
           method: 'POST',
@@ -403,14 +460,16 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
 
         const listingId = listingJson.listing_id;
 
-        // Step 2: upload files directly from browser to Cloudinary
+        // Step 2: upload to Cloudinary — callback drives overlay
         const media = await uploadListingMedia(
           listingId,
           form.images.filter(Boolean),
-          form.video ?? null
+          form.video ?? null,
+          ({ stage, percent }) => setUploadProgress({ stage, percent })
         );
 
-        // Step 3: send URLs to Vercel
+        // Step 3: send URLs to Supabase
+        setUploadProgress({ stage: 'Uploading Data', percent: 75 });
         const mediaRes = await fetch('/api/AddListing/media', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -420,6 +479,11 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
         const mediaJson = await mediaRes.json();
         if (!mediaRes.ok) throw new Error(mediaJson.error ?? 'Failed to save media.');
 
+        // Step 4: Confirming
+        setUploadProgress({ stage: 'Confirming', percent: 100 });
+        await new Promise(r => setTimeout(r, 1500));
+
+        setUploadProgress(null);
         toast.success('Property posted successfully!');
         setForm(EMPTY);
         setIsDirty(false);
@@ -625,6 +689,13 @@ export default function AddListing({ canAdd = true, prefill = null, onDone = nul
         <DiscardPopup
           onContinue={dismissPopup}
           onDiscard={confirmDiscard}
+        />
+      )}
+
+      {uploadProgress && (
+        <UploadOverlay
+          stage={uploadProgress.stage}
+          percent={uploadProgress.percent}
         />
       )}
 
