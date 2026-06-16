@@ -50,7 +50,7 @@ const EMPTY = {
   phone: '',
   price: '',
   description: '',
-  images: [ null, null, null ],
+  images: [ null, null, null, null ],
   video: null,
 };
 
